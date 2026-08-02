@@ -4,7 +4,7 @@ Versi online dari **Bebegalan** (a.k.a. "Begal Kartu"), permainan kartu remi
 khas Jawa Barat yang mirip [Go Fish](https://cardgames.io/gofish/) tapi
 dengan aturan yang lebih ketat soal apa yang harus kamu ungkapkan ke lawan.
 
-Status: **early development**. Dibangun bertahap per-milestone.
+Status: **under development**. Dibangun bertahap per-milestone.
 
 ## Aturan Bebegalan
 
@@ -73,3 +73,6 @@ pnpm test     # menjalankan test semua package (saat ini: packages/shared)
 - `src/types.ts` - tipe `GameState`, `PlayerState`, `AskInput`, `PublicGameState`, `BebegalanError`
 - `src/engine.ts` - `createGame`, `askCard`, `toPublicState` (state sepenuhnya immutable dari luar, hanya diubah lewat fungsi-fungsi ini)
 - `tests/` - unit test (Vitest)
+
+## Author
+- Naufal Nadhif Rabbani Iskandar
