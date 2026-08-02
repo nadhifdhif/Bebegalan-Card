@@ -25,7 +25,6 @@ const notification = ref('')
 const roomCodeInput = ref<HTMLInputElement | null>(null)
 
 const playerOptions: PlayerCount[] = [2, 3, 4, 5, 6]
-
 const flipDuration = 720
 
 let notificationTimer: number | undefined
@@ -43,13 +42,10 @@ const panelTitle = computed(() => {
   switch (activePanel.value) {
     case 'online':
       return 'Online Room'
-
     case 'solo':
       return 'Solo Offline'
-
     case 'settings':
       return 'Settings'
-
     default:
       return ''
   }
@@ -59,21 +55,16 @@ const panelSuit = computed(() => {
   switch (activePanel.value) {
     case 'online':
       return '♣'
-
     case 'solo':
       return '♠'
-
     case 'settings':
       return '♦'
-
     default:
       return '♠'
   }
 })
 
-async function openPanel(
-  panel: Exclude<ActivePanel, null>,
-) {
+async function openPanel(panel: Exclude<ActivePanel, null>) {
   if (closePanelTimer) {
     window.clearTimeout(closePanelTimer)
   }
@@ -121,9 +112,7 @@ function handleOutsideClick() {
   }
 }
 
-function selectDifficulty(
-  difficulty: BotDifficulty,
-) {
+function selectDifficulty(difficulty: BotDifficulty) {
   botDifficulty.value = difficulty
 }
 
@@ -154,10 +143,7 @@ function showNotification(message: string) {
 
 function joinRoom() {
   if (!normalizedRoomCode.value) {
-    showNotification(
-      'Masukkan kode room terlebih dahulu.',
-    )
-
+    showNotification('Masukkan kode room terlebih dahulu.')
     roomCodeInput.value?.focus()
     return
   }
@@ -165,9 +151,7 @@ function joinRoom() {
   const code = normalizedRoomCode.value
 
   closePanel()
-  showNotification(
-    `Room ${code} siap dihubungkan nanti.`,
-  )
+  showNotification(`Room ${code} siap dihubungkan nanti.`)
 }
 
 function createRoom() {
@@ -179,25 +163,20 @@ function createRoom() {
 }
 
 function startSolo() {
-  const difficultyLabel: Record<
-    BotDifficulty,
-    string
-  > = {
+  const difficultyLabel: Record<BotDifficulty, string> = {
     easy: 'Easy',
     normal: 'Normal',
     hard: 'Hard',
   }
 
-  const selectedDifficulty =
-    difficultyLabel[botDifficulty.value]
-
+  const difficulty = difficultyLabel[botDifficulty.value]
   const players = totalPlayers.value
   const bots = botCount.value
 
   closePanel()
 
   showNotification(
-    `${selectedDifficulty} · ${players} pemain · ${bots} ${
+    `${difficulty} · ${players} pemain · ${bots} ${
       bots === 1 ? 'bot' : 'bots'
     }`,
   )
@@ -213,9 +192,7 @@ function saveSettings() {
   )
 
   closePanel()
-  showNotification(
-    'Pengaturan berhasil disimpan.',
-  )
+  showNotification('Pengaturan berhasil disimpan.')
 }
 
 function loadSettings() {
@@ -228,58 +205,39 @@ function loadSettings() {
   }
 
   try {
-    const parsedSettings = JSON.parse(
-      storedSettings,
-    ) as {
+    const parsedSettings = JSON.parse(storedSettings) as {
       soundEnabled?: boolean
       animationsEnabled?: boolean
     }
 
-    if (
-      typeof parsedSettings.soundEnabled ===
-      'boolean'
-    ) {
-      soundEnabled.value =
-        parsedSettings.soundEnabled
+    if (typeof parsedSettings.soundEnabled === 'boolean') {
+      soundEnabled.value = parsedSettings.soundEnabled
     }
 
     if (
-      typeof parsedSettings.animationsEnabled ===
-      'boolean'
+      typeof parsedSettings.animationsEnabled === 'boolean'
     ) {
       animationsEnabled.value =
         parsedSettings.animationsEnabled
     }
   } catch {
-    localStorage.removeItem(
-      'begalkartu-settings',
-    )
+    localStorage.removeItem('begalkartu-settings')
   }
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  if (
-    event.key === 'Escape' &&
-    isFlipped.value
-  ) {
+  if (event.key === 'Escape' && isFlipped.value) {
     closePanel()
   }
 }
 
 onMounted(() => {
   loadSettings()
-
-  window.addEventListener(
-    'keydown',
-    handleKeydown,
-  )
+  window.addEventListener('keydown', handleKeydown)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener(
-    'keydown',
-    handleKeydown,
-  )
+  window.removeEventListener('keydown', handleKeydown)
 
   if (notificationTimer) {
     window.clearTimeout(notificationTimer)
@@ -300,14 +258,8 @@ onBeforeUnmount(() => {
     }"
     @click="handleOutsideClick"
   >
-    <div
-      class="background-glow background-glow--one"
-    ></div>
-
-    <div
-      class="background-glow background-glow--two"
-    ></div>
-
+    <div class="background-glow background-glow--one"></div>
+    <div class="background-glow background-glow--two"></div>
     <div class="noise-layer"></div>
 
     <Transition name="dim">
@@ -323,9 +275,7 @@ onBeforeUnmount(() => {
       aria-hidden="true"
     >
       <span class="card-rank">A</span>
-      <span class="card-suit red-suit">
-        ♥
-      </span>
+      <span class="card-suit red-suit">♥</span>
     </div>
 
     <div
@@ -342,16 +292,12 @@ onBeforeUnmount(() => {
     >
       <div
         class="flip-card"
-        :class="{
-          'is-flipped': isFlipped,
-        }"
+        :class="{ 'is-flipped': isFlipped }"
       >
         <!-- MAIN MENU -->
         <section
           class="game-card game-card--front flip-face"
-          :class="{
-            'face-active': !isFlipped,
-          }"
+          :class="{ 'face-active': !isFlipped }"
           :aria-hidden="isFlipped"
         >
           <div
@@ -380,8 +326,7 @@ onBeforeUnmount(() => {
             </h1>
 
             <p class="tagline">
-              Tebak kartunya. Rebut kartunya.
-              Kuasai meja.
+              Tebak kartunya. Rebut kartunya. Kuasai meja.
             </p>
           </header>
 
@@ -389,9 +334,7 @@ onBeforeUnmount(() => {
             <button
               class="menu-option"
               type="button"
-              @click.stop="
-                openPanel('online')
-              "
+              @click.stop="openPanel('online')"
             >
               Online Room
             </button>
@@ -399,9 +342,7 @@ onBeforeUnmount(() => {
             <button
               class="menu-option"
               type="button"
-              @click.stop="
-                openPanel('solo')
-              "
+              @click.stop="openPanel('solo')"
             >
               Solo Offline
             </button>
@@ -409,9 +350,7 @@ onBeforeUnmount(() => {
             <button
               class="menu-option"
               type="button"
-              @click.stop="
-                openPanel('settings')
-              "
+              @click.stop="openPanel('settings')"
             >
               Settings
             </button>
@@ -419,21 +358,15 @@ onBeforeUnmount(() => {
 
           <footer class="menu-footer">
             <span>v0.1.0</span>
-
             <span class="footer-dot"></span>
-
-            <span>
-              Made for tongkrongan
-            </span>
+            <span>Made for tongkrongan</span>
           </footer>
         </section>
 
         <!-- BACK CARD -->
         <section
           class="game-card game-card--back flip-face"
-          :class="{
-            'face-active': isFlipped,
-          }"
+          :class="{ 'face-active': isFlipped }"
           :aria-hidden="!isFlipped"
         >
           <div
@@ -472,9 +405,7 @@ onBeforeUnmount(() => {
           <div class="back-content">
             <!-- ONLINE ROOM -->
             <div
-              v-if="
-                activePanel === 'online'
-              "
+              v-if="activePanel === 'online'"
               class="panel-content"
             >
               <header class="panel-header">
@@ -491,12 +422,9 @@ onBeforeUnmount(() => {
 
                 <h2>Online Room</h2>
 
-                <p
-                  class="panel-description"
-                >
-                  Masukkan kode room dari
-                  temanmu atau buat room
-                  permainan baru.
+                <p class="panel-description">
+                  Masukkan kode room dari temanmu atau buat
+                  room permainan baru.
                 </p>
               </header>
 
@@ -526,17 +454,13 @@ onBeforeUnmount(() => {
                 <button
                   class="primary-button"
                   type="button"
-                  :disabled="
-                    !normalizedRoomCode
-                  "
+                  :disabled="!normalizedRoomCode"
                   @click.stop="joinRoom"
                 >
                   Gabung Room
                 </button>
 
-                <div
-                  class="button-divider"
-                >
+                <div class="button-divider">
                   <span>atau</span>
                 </div>
 
@@ -550,21 +474,17 @@ onBeforeUnmount(() => {
               </div>
 
               <p class="panel-hint">
-                Klik area di luar kartu atau
-                tombol × untuk kembali.
+                Klik area di luar kartu atau tombol × untuk
+                kembali.
               </p>
             </div>
 
             <!-- SOLO OFFLINE -->
             <div
-              v-else-if="
-                activePanel === 'solo'
-              "
+              v-else-if="activePanel === 'solo'"
               class="panel-content solo-panel"
             >
-              <header
-                class="panel-header solo-header"
-              >
+              <header class="panel-header solo-header">
                 <div
                   class="panel-emblem panel-emblem--solo"
                   aria-hidden="true"
@@ -579,35 +499,20 @@ onBeforeUnmount(() => {
                 <h2>Solo Offline</h2>
               </header>
 
-              <section
-                class="solo-section"
-              >
-                <h3
-                  class="solo-section-title"
-                >
+              <section class="solo-section">
+                <h3 class="solo-section-title">
                   Difficulty
                 </h3>
 
-                <div
-                  class="difficulty-list"
-                >
+                <div class="difficulty-list">
                   <button
                     class="difficulty-button"
                     :class="{
-                      active:
-                        botDifficulty ===
-                        'easy',
+                      active: botDifficulty === 'easy',
                     }"
                     type="button"
-                    :aria-pressed="
-                      botDifficulty ===
-                      'easy'
-                    "
-                    @click.stop="
-                      selectDifficulty(
-                        'easy',
-                      )
-                    "
+                    :aria-pressed="botDifficulty === 'easy'"
+                    @click.stop="selectDifficulty('easy')"
                   >
                     Easy
                   </button>
@@ -615,20 +520,13 @@ onBeforeUnmount(() => {
                   <button
                     class="difficulty-button"
                     :class="{
-                      active:
-                        botDifficulty ===
-                        'normal',
+                      active: botDifficulty === 'normal',
                     }"
                     type="button"
                     :aria-pressed="
-                      botDifficulty ===
-                      'normal'
+                      botDifficulty === 'normal'
                     "
-                    @click.stop="
-                      selectDifficulty(
-                        'normal',
-                      )
-                    "
+                    @click.stop="selectDifficulty('normal')"
                   >
                     Normal
                   </button>
@@ -636,20 +534,11 @@ onBeforeUnmount(() => {
                   <button
                     class="difficulty-button"
                     :class="{
-                      active:
-                        botDifficulty ===
-                        'hard',
+                      active: botDifficulty === 'hard',
                     }"
                     type="button"
-                    :aria-pressed="
-                      botDifficulty ===
-                      'hard'
-                    "
-                    @click.stop="
-                      selectDifficulty(
-                        'hard',
-                      )
-                    "
+                    :aria-pressed="botDifficulty === 'hard'"
+                    @click.stop="selectDifficulty('hard')"
                   >
                     Hard
                   </button>
@@ -659,75 +548,25 @@ onBeforeUnmount(() => {
               <section
                 class="solo-section player-section"
               >
-                <h3
-                  class="solo-section-title"
-                >
+                <h3 class="solo-section-title">
                   Total Players
                 </h3>
 
-                <div
-                  class="player-count-list"
-                >
+                <div class="player-count-list">
                   <button
-                    v-for="
-                      count in playerOptions
-                    "
+                    v-for="count in playerOptions"
                     :key="count"
                     class="player-count-button"
                     :class="{
-                      active:
-                        totalPlayers ===
-                        count,
+                      active: totalPlayers === count,
                     }"
                     type="button"
-                    :aria-pressed="
-                      totalPlayers ===
-                      count
-                    "
+                    :aria-pressed="totalPlayers === count"
                     :aria-label="`${count} pemain, termasuk kamu dan ${count - 1} bot`"
-                    @click.stop="
-                      selectPlayerCount(
-                        count,
-                      )
-                    "
+                    @click.stop="selectPlayerCount(count)"
                   >
                     {{ count }}
                   </button>
-                </div>
-
-                <div
-                  class="match-summary"
-                >
-                  <span
-                    class="summary-group"
-                  >
-                    <strong>
-                      {{ totalPlayers }}
-                    </strong>
-
-                    <span>Players</span>
-                  </span>
-
-                  <span
-                    class="summary-divider"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span
-                    class="summary-group"
-                  >
-                    <strong>
-                      {{ botCount }}
-                    </strong>
-
-                    <span>
-                      {{
-                        botCount === 1
-                          ? 'Bot'
-                          : 'Bots'
-                      }}
-                    </span>
-                  </span>
                 </div>
               </section>
 
@@ -742,10 +581,7 @@ onBeforeUnmount(() => {
 
             <!-- SETTINGS -->
             <div
-              v-else-if="
-                activePanel ===
-                'settings'
-              "
+              v-else-if="activePanel === 'settings'"
               class="panel-content"
             >
               <header class="panel-header">
@@ -762,11 +598,8 @@ onBeforeUnmount(() => {
 
                 <h2>Settings</h2>
 
-                <p
-                  class="panel-description"
-                >
-                  Atur pengalaman bermain
-                  sesuai keinginanmu.
+                <p class="panel-description">
+                  Atur pengalaman bermain sesuai keinginanmu.
                 </p>
               </header>
 
@@ -775,60 +608,42 @@ onBeforeUnmount(() => {
                   class="setting-row"
                   @click.stop
                 >
-                  <span
-                    class="setting-copy"
-                  >
-                    <strong>
-                      Sound Effects
-                    </strong>
+                  <span class="setting-copy">
+                    <strong>Sound Effects</strong>
 
                     <small>
-                      Suara kartu dan tombol
-                      permainan
+                      Suara kartu dan tombol permainan
                     </small>
                   </span>
 
                   <input
-                    v-model="
-                      soundEnabled
-                    "
+                    v-model="soundEnabled"
                     class="toggle-input"
                     type="checkbox"
                   />
 
-                  <span
-                    class="toggle-switch"
-                  ></span>
+                  <span class="toggle-switch"></span>
                 </label>
 
                 <label
                   class="setting-row"
                   @click.stop
                 >
-                  <span
-                    class="setting-copy"
-                  >
-                    <strong>
-                      Animations
-                    </strong>
+                  <span class="setting-copy">
+                    <strong>Animations</strong>
 
                     <small>
-                      Animasi kartu dan
-                      perpindahan menu
+                      Animasi kartu dan perpindahan menu
                     </small>
                   </span>
 
                   <input
-                    v-model="
-                      animationsEnabled
-                    "
+                    v-model="animationsEnabled"
                     class="toggle-input"
                     type="checkbox"
                   />
 
-                  <span
-                    class="toggle-switch"
-                  ></span>
+                  <span class="toggle-switch"></span>
                 </label>
               </div>
 
@@ -841,8 +656,8 @@ onBeforeUnmount(() => {
               </button>
 
               <p class="panel-hint">
-                Klik area di luar kartu atau
-                tombol × untuk kembali.
+                Klik area di luar kartu atau tombol × untuk
+                kembali.
               </p>
             </div>
           </div>
@@ -856,10 +671,7 @@ onBeforeUnmount(() => {
         class="notification"
         role="status"
       >
-        <span aria-hidden="true">
-          ♠
-        </span>
-
+        <span aria-hidden="true">♠</span>
         {{ notification }}
       </div>
     </Transition>
@@ -964,10 +776,7 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 4;
   width: min(100%, 520px);
-  height: min(
-    660px,
-    calc(100dvh - 40px)
-  );
+  height: min(660px, calc(100dvh - 40px));
   min-height: 580px;
   perspective: 1800px;
 }
@@ -978,12 +787,7 @@ onBeforeUnmount(() => {
   height: 100%;
   transform-style: preserve-3d;
   transition: transform 720ms
-    cubic-bezier(
-      0.2,
-      0.78,
-      0.22,
-      1
-    );
+    cubic-bezier(0.2, 0.78, 0.22, 1);
 }
 
 .flip-card.is-flipped {
@@ -1007,10 +811,8 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border);
   border-radius: 30px;
   box-shadow:
-    0 35px 90px
-      rgba(0, 0, 0, 0.55),
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.08);
+    0 35px 90px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .game-card--front {
@@ -1018,9 +820,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   justify-content: center;
   padding: 38px;
-  transform:
-    rotateY(0deg)
-    translateZ(1px);
+  transform: rotateY(0deg) translateZ(1px);
   background: linear-gradient(
     145deg,
     rgba(24, 52, 43, 0.97),
@@ -1030,9 +830,7 @@ onBeforeUnmount(() => {
 
 .game-card--back {
   padding: 38px;
-  transform:
-    rotateY(180deg)
-    translateZ(1px);
+  transform: rotateY(180deg) translateZ(1px);
   background:
     radial-gradient(
       circle at center,
@@ -1051,8 +849,7 @@ onBeforeUnmount(() => {
   z-index: 0;
   inset: 10px;
   pointer-events: none;
-  border: 1px solid
-    rgba(245, 185, 66, 0.13);
+  border: 1px solid rgba(245, 185, 66, 0.13);
   border-radius: 22px;
 }
 
@@ -1071,11 +868,9 @@ onBeforeUnmount(() => {
   padding: 8px 15px;
   margin-bottom: 16px;
   font-size: 14px;
-  border: 1px solid
-    rgba(245, 185, 66, 0.3);
+  border: 1px solid rgba(245, 185, 66, 0.3);
   border-radius: 999px;
-  background:
-    rgba(245, 185, 66, 0.08);
+  background: rgba(245, 185, 66, 0.08);
 }
 
 .brand-badge span:nth-child(2),
@@ -1095,17 +890,11 @@ onBeforeUnmount(() => {
 
 h1 {
   margin: 0;
-  font-size: clamp(
-    42px,
-    8vw,
-    66px
-  );
+  font-size: clamp(42px, 8vw, 66px);
   font-weight: 950;
   line-height: 0.95;
   letter-spacing: -0.065em;
-  text-shadow:
-    0 8px 30px
-    rgba(0, 0, 0, 0.4);
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 h1 span {
@@ -1146,8 +935,7 @@ h1 span {
   border-radius: 14px;
   outline: none;
   place-items: center;
-  background:
-    rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.025);
   transition:
     color 180ms ease,
     transform 180ms ease,
@@ -1159,13 +947,9 @@ h1 span {
 .menu-option:hover,
 .menu-option:focus-visible {
   color: var(--gold);
-  border-color:
-    rgba(245, 185, 66, 0.6);
-  background:
-    rgba(245, 185, 66, 0.08);
-  box-shadow:
-    0 10px 26px
-    rgba(0, 0, 0, 0.22);
+  border-color: rgba(245, 185, 66, 0.6);
+  background: rgba(245, 185, 66, 0.08);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
   transform: translateY(-2px);
 }
 
@@ -1200,19 +984,15 @@ h1 span {
     linear-gradient(
       45deg,
       transparent 46%,
-      rgba(245, 185, 66, 0.35)
-        47%,
-      rgba(245, 185, 66, 0.35)
-        49%,
+      rgba(245, 185, 66, 0.35) 47%,
+      rgba(245, 185, 66, 0.35) 49%,
       transparent 50%
     ),
     linear-gradient(
       -45deg,
       transparent 46%,
-      rgba(255, 255, 255, 0.2)
-        47%,
-      rgba(255, 255, 255, 0.2)
-        49%,
+      rgba(255, 255, 255, 0.2) 47%,
+      rgba(255, 255, 255, 0.2) 49%,
       transparent 50%
     );
   background-size: 54px 54px;
@@ -1221,8 +1001,7 @@ h1 span {
 .corner-mark {
   position: absolute;
   z-index: 1;
-  color:
-    rgba(245, 185, 66, 0.11);
+  color: rgba(245, 185, 66, 0.11);
   font-size: 110px;
   line-height: 1;
   pointer-events: none;
@@ -1237,8 +1016,7 @@ h1 span {
 .corner-mark--bottom {
   right: 30px;
   bottom: 28px;
-  color:
-    rgba(255, 100, 111, 0.08);
+  color: rgba(255, 100, 111, 0.08);
   transform: rotate(167deg);
 }
 
@@ -1255,12 +1033,10 @@ h1 span {
   font-size: 27px;
   line-height: 1;
   cursor: pointer;
-  border: 1px solid
-    rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 50%;
   place-items: center;
-  background:
-    rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06);
   transition:
     color 180ms ease,
     background 180ms ease,
@@ -1271,8 +1047,7 @@ h1 span {
 .panel-close:focus-visible {
   color: var(--gold);
   outline: none;
-  background:
-    rgba(245, 185, 66, 0.11);
+  background: rgba(245, 185, 66, 0.11);
   transform: rotate(90deg);
 }
 
@@ -1299,12 +1074,10 @@ h1 span {
   margin-bottom: 19px;
   color: var(--gold);
   font-size: 25px;
-  border: 1px solid
-    rgba(245, 185, 66, 0.35);
+  border: 1px solid rgba(245, 185, 66, 0.35);
   border-radius: 17px;
   place-items: center;
-  background:
-    rgba(245, 185, 66, 0.09);
+  background: rgba(245, 185, 66, 0.09);
 }
 
 .panel-emblem--solo {
@@ -1355,8 +1128,7 @@ h1 span {
   border: 1px solid var(--border);
   border-radius: 15px;
   outline: none;
-  background:
-    rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.2);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -1364,17 +1136,13 @@ h1 span {
 }
 
 .room-input::placeholder {
-  color:
-    rgba(158, 175, 168, 0.43);
+  color: rgba(158, 175, 168, 0.43);
 }
 
 .room-input:focus {
   border-color: var(--gold);
-  background:
-    rgba(0, 0, 0, 0.28);
-  box-shadow:
-    0 0 0 4px
-    rgba(245, 185, 66, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: 0 0 0 4px rgba(245, 185, 66, 0.1);
 }
 
 .primary-button,
@@ -1403,17 +1171,11 @@ h1 span {
     var(--gold-light),
     var(--gold)
   );
-  box-shadow:
-    0 14px 30px
-    rgba(245, 185, 66, 0.18);
+  box-shadow: 0 14px 30px rgba(245, 185, 66, 0.18);
 }
 
-.primary-button:hover:not(
-    :disabled
-  ),
-.primary-button:focus-visible:not(
-    :disabled
-  ) {
+.primary-button:hover:not(:disabled),
+.primary-button:focus-visible:not(:disabled) {
   filter: brightness(1.06);
   outline: none;
   transform: translateY(-2px);
@@ -1427,18 +1189,15 @@ h1 span {
 .secondary-button {
   color: var(--text);
   border: 1px solid var(--border);
-  background:
-    rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .secondary-button:hover,
 .secondary-button:focus-visible {
   color: var(--gold);
-  border-color:
-    rgba(245, 185, 66, 0.48);
+  border-color: rgba(245, 185, 66, 0.48);
   outline: none;
-  background:
-    rgba(245, 185, 66, 0.07);
+  background: rgba(245, 185, 66, 0.07);
   transform: translateY(-2px);
 }
 
@@ -1447,8 +1206,7 @@ h1 span {
   gap: 12px;
   align-items: center;
   margin: 13px 0;
-  color:
-    rgba(158, 175, 168, 0.55);
+  color: rgba(158, 175, 168, 0.55);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -1459,8 +1217,7 @@ h1 span {
   flex: 1;
   height: 1px;
   content: '';
-  background:
-    rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* SOLO */
@@ -1476,24 +1233,22 @@ h1 span {
 }
 
 .solo-section {
-  margin-bottom: 22px;
+  margin-bottom: 23px;
 }
 
 .solo-section-title {
-  margin: 0 0 12px;
-  color:
-    rgba(248, 243, 231, 0.82);
-  font-size: 12px;
-  font-weight: 900;
+  margin: 0 0 14px;
+  color: rgba(248, 243, 231, 0.94);
+  font-size: 17px;
+  font-weight: 950;
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
 }
 
 .difficulty-list {
   display: grid;
-  grid-template-columns:
-    repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 11px;
 }
 
@@ -1510,8 +1265,7 @@ h1 span {
   font-weight: 950;
   text-align: center;
   cursor: pointer;
-  border: 1px solid
-    rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 15px;
   outline: none;
   place-items: center;
@@ -1522,12 +1276,9 @@ h1 span {
     rgba(255, 255, 255, 0.025)
   );
   box-shadow:
-    0 7px 0
-      rgba(2, 12, 9, 0.92),
-    0 12px 20px
-      rgba(0, 0, 0, 0.25),
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.08);
+    0 7px 0 rgba(2, 12, 9, 0.92),
+    0 12px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transform: translateY(0);
   transition:
     color 150ms ease,
@@ -1540,18 +1291,14 @@ h1 span {
 .difficulty-button:hover,
 .difficulty-button:focus-visible {
   color: var(--gold);
-  border-color:
-    rgba(245, 185, 66, 0.55);
+  border-color: rgba(245, 185, 66, 0.55);
 }
 
 .difficulty-button:active {
   box-shadow:
-    0 2px 0
-      rgba(2, 12, 9, 0.92),
-    0 5px 10px
-      rgba(0, 0, 0, 0.2),
-    inset 0 5px 10px
-      rgba(0, 0, 0, 0.25);
+    0 2px 0 rgba(2, 12, 9, 0.92),
+    0 5px 10px rgba(0, 0, 0, 0.2),
+    inset 0 5px 10px rgba(0, 0, 0, 0.25);
   transform: translateY(5px);
 }
 
@@ -1564,25 +1311,21 @@ h1 span {
     rgba(245, 185, 66, 0.07)
   );
   box-shadow:
-    0 2px 0
-      rgba(2, 12, 9, 0.92),
-    0 5px 10px
-      rgba(0, 0, 0, 0.2),
-    inset 0 5px 11px
-      rgba(0, 0, 0, 0.3);
+    0 2px 0 rgba(2, 12, 9, 0.92),
+    0 5px 10px rgba(0, 0, 0, 0.2),
+    inset 0 5px 11px rgba(0, 0, 0, 0.3);
   transform: translateY(5px);
 }
 
 .player-section {
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .player-count-list {
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns:
-    repeat(5, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
 
@@ -1599,8 +1342,7 @@ h1 span {
   font-size: 21px;
   font-weight: 950;
   cursor: pointer;
-  border: 1px solid
-    rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   outline: none;
   place-items: center;
@@ -1611,12 +1353,9 @@ h1 span {
     rgba(255, 255, 255, 0.025)
   );
   box-shadow:
-    0 7px 0
-      rgba(2, 12, 9, 0.92),
-    0 11px 18px
-      rgba(0, 0, 0, 0.24),
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.09);
+    0 7px 0 rgba(2, 12, 9, 0.92),
+    0 11px 18px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
   transform: translateY(0);
   transition:
     color 150ms ease,
@@ -1629,18 +1368,14 @@ h1 span {
 .player-count-button:hover,
 .player-count-button:focus-visible {
   color: var(--gold);
-  border-color:
-    rgba(245, 185, 66, 0.55);
+  border-color: rgba(245, 185, 66, 0.55);
 }
 
 .player-count-button:active {
   box-shadow:
-    0 2px 0
-      rgba(2, 12, 9, 0.92),
-    0 4px 9px
-      rgba(0, 0, 0, 0.2),
-    inset 0 5px 10px
-      rgba(0, 0, 0, 0.25);
+    0 2px 0 rgba(2, 12, 9, 0.92),
+    0 4px 9px rgba(0, 0, 0, 0.2),
+    inset 0 5px 10px rgba(0, 0, 0, 0.25);
   transform: translateY(5px);
 }
 
@@ -1653,54 +1388,14 @@ h1 span {
     var(--gold)
   );
   box-shadow:
-    0 2px 0
-      rgba(2, 12, 9, 0.92),
-    0 5px 10px
-      rgba(0, 0, 0, 0.2),
-    inset 0 5px 11px
-      rgba(120, 71, 0, 0.28);
+    0 2px 0 rgba(2, 12, 9, 0.92),
+    0 5px 10px rgba(0, 0, 0, 0.2),
+    inset 0 5px 11px rgba(120, 71, 0, 0.28);
   transform: translateY(5px);
 }
 
-.match-summary {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  margin-top: 16px;
-  color: var(--gold);
-}
-
-.summary-group {
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-  text-transform: uppercase;
-}
-
-.summary-group strong {
-  font-size: 22px;
-  font-weight: 950;
-  line-height: 1;
-}
-
-.summary-group span {
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.13em;
-}
-
-.summary-divider {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background:
-    rgba(245, 185, 66, 0.55);
-}
-
 .solo-start-button {
-  margin-top: 9px;
+  margin-top: 23px;
 }
 
 /* SETTINGS */
@@ -1721,8 +1416,7 @@ h1 span {
   cursor: pointer;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background:
-    rgba(255, 255, 255, 0.035);
+  background: rgba(255, 255, 255, 0.035);
   transition:
     border-color 180ms ease,
     background 180ms ease,
@@ -1730,10 +1424,8 @@ h1 span {
 }
 
 .setting-row:hover {
-  border-color:
-    rgba(245, 185, 66, 0.35);
-  background:
-    rgba(245, 185, 66, 0.055);
+  border-color: rgba(245, 185, 66, 0.35);
+  background: rgba(245, 185, 66, 0.055);
   transform: translateY(-1px);
 }
 
@@ -1778,27 +1470,19 @@ h1 span {
   content: '';
   border-radius: 50%;
   background: white;
-  box-shadow:
-    0 3px 8px
-    rgba(0, 0, 0, 0.22);
-  transition:
-    transform 180ms ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+  transition: transform 180ms ease;
 }
 
-.toggle-input:focus-visible
-  + .toggle-switch {
-  box-shadow:
-    0 0 0 4px
-    rgba(245, 185, 66, 0.15);
+.toggle-input:focus-visible + .toggle-switch {
+  box-shadow: 0 0 0 4px rgba(245, 185, 66, 0.15);
 }
 
-.toggle-input:checked
-  + .toggle-switch {
+.toggle-input:checked + .toggle-switch {
   background: var(--green);
 }
 
-.toggle-input:checked
-  + .toggle-switch::after {
+.toggle-input:checked + .toggle-switch::after {
   transform: translateX(21px);
 }
 
@@ -1808,8 +1492,7 @@ h1 span {
 
 .panel-hint {
   margin: 17px 0 0;
-  color:
-    rgba(158, 175, 168, 0.66);
+  color: rgba(158, 175, 168, 0.66);
   font-size: 9px;
   text-align: center;
   letter-spacing: 0.02em;
@@ -1827,13 +1510,10 @@ h1 span {
   padding: 18px;
   color: #121212;
   pointer-events: none;
-  border: 5px solid
-    rgba(255, 255, 255, 0.42);
+  border: 5px solid rgba(255, 255, 255, 0.42);
   border-radius: 17px;
   background: #f7f0df;
-  box-shadow:
-    0 25px 60px
-    rgba(0, 0, 0, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
   opacity: 0.16;
   user-select: none;
   transition: opacity 350ms ease;
@@ -1847,18 +1527,14 @@ h1 span {
   top: 12%;
   left: 7%;
   transform: rotate(-19deg);
-  animation:
-    card-float-left
-    6s ease-in-out infinite;
+  animation: card-float-left 6s ease-in-out infinite;
 }
 
 .floating-card--right {
   right: 7%;
   bottom: 10%;
   transform: rotate(17deg);
-  animation:
-    card-float-right
-    7s ease-in-out infinite;
+  animation: card-float-right 7s ease-in-out infinite;
 }
 
 .card-rank {
@@ -1885,21 +1561,16 @@ h1 span {
   display: flex;
   gap: 10px;
   align-items: center;
-  max-width:
-    calc(100% - 30px);
+  max-width: calc(100% - 30px);
   padding: 13px 18px;
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
-  border: 1px solid
-    rgba(245, 185, 66, 0.3);
+  border: 1px solid rgba(245, 185, 66, 0.3);
   border-radius: 999px;
-  background:
-    rgba(18, 38, 32, 0.97);
-  box-shadow:
-    0 20px 45px
-    rgba(0, 0, 0, 0.4);
+  background: rgba(18, 38, 32, 0.97);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
   transform: translateX(-50%);
 }
 
@@ -1925,49 +1596,37 @@ h1 span {
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform:
-    translate(-50%, 15px);
+  transform: translate(-50%, 15px);
 }
 
 .reduced-motion *,
 .reduced-motion *::before,
 .reduced-motion *::after {
   scroll-behavior: auto !important;
-  animation-duration:
-    0.001ms !important;
-  animation-iteration-count:
-    1 !important;
-  transition-duration:
-    0.001ms !important;
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
 }
 
 @keyframes card-float-left {
   0%,
   100% {
-    transform:
-      translateY(0)
-      rotate(-19deg);
+    transform: translateY(0) rotate(-19deg);
   }
 
   50% {
-    transform:
-      translateY(-16px)
-      rotate(-15deg);
+    transform: translateY(-16px) rotate(-15deg);
   }
 }
 
 @keyframes card-float-right {
   0%,
   100% {
-    transform:
-      translateY(0)
-      rotate(17deg);
+    transform: translateY(0) rotate(17deg);
   }
 
   50% {
-    transform:
-      translateY(14px)
-      rotate(13deg);
+    transform: translateY(14px) rotate(13deg);
   }
 }
 
@@ -1977,10 +1636,7 @@ h1 span {
   }
 
   .flip-scene {
-    height: min(
-      630px,
-      calc(100dvh - 28px)
-    );
+    height: min(630px, calc(100dvh - 28px));
   }
 
   .game-card--front,
@@ -2014,9 +1670,7 @@ h1 span {
   }
 
   .flip-scene {
-    height: calc(
-      100dvh - 16px
-    );
+    height: calc(100dvh - 16px);
     min-height: 550px;
   }
 
@@ -2066,12 +1720,13 @@ h1 span {
   }
 
   .solo-section {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
 
   .solo-section-title {
-    margin-bottom: 9px;
-    font-size: 10px;
+    margin-bottom: 11px;
+    font-size: 13px;
+    letter-spacing: 0.1em;
   }
 
   .difficulty-list {
@@ -2084,22 +1739,16 @@ h1 span {
     font-size: 14px;
     border-radius: 11px;
     box-shadow:
-      0 5px 0
-        rgba(2, 12, 9, 0.92),
-      0 9px 15px
-        rgba(0, 0, 0, 0.22),
-      inset 0 1px 0
-        rgba(255, 255, 255, 0.08);
+      0 5px 0 rgba(2, 12, 9, 0.92),
+      0 9px 15px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .difficulty-button.active {
     box-shadow:
-      0 1px 0
-        rgba(2, 12, 9, 0.92),
-      0 3px 8px
-        rgba(0, 0, 0, 0.2),
-      inset 0 5px 10px
-        rgba(0, 0, 0, 0.28);
+      0 1px 0 rgba(2, 12, 9, 0.92),
+      0 3px 8px rgba(0, 0, 0, 0.2),
+      inset 0 5px 10px rgba(0, 0, 0, 0.28);
     transform: translateY(4px);
   }
 
@@ -2111,36 +1760,17 @@ h1 span {
     font-size: 18px;
     border-radius: 10px;
     box-shadow:
-      0 5px 0
-        rgba(2, 12, 9, 0.92),
-      0 8px 14px
-        rgba(0, 0, 0, 0.22),
-      inset 0 1px 0
-        rgba(255, 255, 255, 0.08);
+      0 5px 0 rgba(2, 12, 9, 0.92),
+      0 8px 14px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .player-count-button.active {
     box-shadow:
-      0 1px 0
-        rgba(2, 12, 9, 0.92),
-      0 3px 8px
-        rgba(0, 0, 0, 0.2),
-      inset 0 5px 10px
-        rgba(120, 71, 0, 0.26);
+      0 1px 0 rgba(2, 12, 9, 0.92),
+      0 3px 8px rgba(0, 0, 0, 0.2),
+      inset 0 5px 10px rgba(120, 71, 0, 0.26);
     transform: translateY(4px);
-  }
-
-  .match-summary {
-    min-height: 31px;
-    margin-top: 12px;
-  }
-
-  .summary-group strong {
-    font-size: 18px;
-  }
-
-  .summary-group span {
-    font-size: 8px;
   }
 
   .setting-row {
@@ -2159,13 +1789,12 @@ h1 span {
   }
 
   .solo-start-button {
-    margin-top: 5px;
+    margin-top: 18px;
   }
 
   .notification {
     width: max-content;
-    max-width:
-      calc(100% - 24px);
+    max-width: calc(100% - 24px);
     font-size: 11px;
     white-space: normal;
   }
