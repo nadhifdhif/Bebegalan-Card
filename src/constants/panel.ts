@@ -1,0 +1,1 @@
+export const PANEL_FLIP_DURATION_MS = 720
