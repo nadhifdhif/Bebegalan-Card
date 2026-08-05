@@ -1,0 +1,252 @@
+/* Shared "back panel" design system used by SettingsView, SoloPlayerView
+   and MultiplayerView. Kept global (not scoped) so every panel view can
+   reuse the same classes without duplicating CSS. */
+
+/* Color tokens live here (not scoped to .game-shell in GameShellLayout)
+   because routes like SoloTableView render outside GameShellLayout
+   entirely (full-screen game board, not a flip-card panel) and still
+   need the same palette. */
+:root {
+  --background: #07110f;
+  --card-dark: #071d17;
+  --card-light: #173b30;
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #f8f3e7;
+  --muted: #9eafa8;
+  --gold: #f5b942;
+  --gold-light: #ffdc78;
+  --green: #3ddc97;
+  --red: #ff646f;
+}
+
+.panel-eyebrow {
+  margin: 0 0 8px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+}
+
+.panel-content {
+  width: 100%;
+}
+
+.panel-header {
+  margin-bottom: 25px;
+}
+
+.panel-emblem {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 19px;
+  color: var(--gold);
+  font-size: 25px;
+  border: 1px solid rgba(245, 185, 66, 0.35);
+  border-radius: 17px;
+  place-items: center;
+  background: rgba(245, 185, 66, 0.09);
+}
+
+.panel-emblem--solo {
+  color: var(--text);
+}
+
+.panel-emblem--settings {
+  color: var(--red);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.panel-description {
+  max-width: 370px;
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.primary-button,
+.secondary-button {
+  width: 100%;
+  min-height: 55px;
+  padding: 14px 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 15px;
+  transition:
+    transform 180ms ease,
+    filter 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.primary-button {
+  margin-top: 14px;
+  color: #172018;
+  border: 0;
+  background: linear-gradient(
+    135deg,
+    var(--gold-light),
+    var(--gold)
+  );
+  box-shadow: 0 14px 30px rgba(245, 185, 66, 0.18);
+}
+
+.primary-button:hover:not(:disabled),
+.primary-button:focus-visible:not(:disabled) {
+  filter: brightness(1.06);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.secondary-button {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+  color: var(--gold);
+  border-color: rgba(245, 185, 66, 0.48);
+  outline: none;
+  background: rgba(245, 185, 66, 0.07);
+  transform: translateY(-2px);
+}
+
+.button-divider {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 13px 0;
+  color: rgba(158, 175, 168, 0.55);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.button-divider::before,
+.button-divider::after {
+  flex: 1;
+  height: 1px;
+  content: '';
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.toggle-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 50px;
+  height: 29px;
+  border-radius: 999px;
+  background: #33433d;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.toggle-switch::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 21px;
+  height: 21px;
+  content: '';
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+  transition: transform 180ms ease;
+}
+
+.toggle-input:focus-visible + .toggle-switch {
+  box-shadow: 0 0 0 4px rgba(245, 185, 66, 0.15);
+}
+
+.toggle-input:checked + .toggle-switch {
+  background: var(--green);
+}
+
+.toggle-input:checked + .toggle-switch::after {
+  transform: translateX(21px);
+}
+
+.panel-hint {
+  margin: 17px 0 0;
+  color: rgba(158, 175, 168, 0.66);
+  font-size: 9px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* Disable all motion app-wide. Deliberately global (not scoped to
+   GameShellLayout) because it must reach elements rendered by every
+   panel view, not just the shell's own markup. */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+@media (max-width: 760px) {
+  .panel-header h2 {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 440px) {
+  .panel-header {
+    margin-bottom: 17px;
+  }
+
+  .panel-emblem {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 13px;
+    font-size: 21px;
+  }
+
+  .panel-header h2 {
+    font-size: 27px;
+  }
+
+  .panel-description {
+    font-size: 11px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    min-height: 48px;
+  }
+}
