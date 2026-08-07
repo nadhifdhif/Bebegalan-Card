@@ -160,31 +160,41 @@ export function nextPlayerIndex(state: GameState, from: number): number {
 
 /**
  * A hand can go empty before the draw pile does. Real Bebegalan doesn't
- * define this edge case explicitly, so this prototype treats it the same
- * as a miss: draw one free card if possible, otherwise skip the turn.
+ * define this edge case explicitly: this prototype tops the player back up
+ * with one free card from the pile so their turn continues normally. Only
+ * when the pile is also empty do they get skipped entirely (they wait out
+ * the rest of the game until a winner is decided).
  */
 export function resolveEmptyHand(state: GameState): void {
   let guard = 0
 
-  while (guard < state.players.length + 1) {
+  while (guard <= state.players.length) {
     const current = state.players[state.currentPlayerIndex]
 
-    if (!current || current.hand.length > 0) {
+    if (!current) {
       return
+    }
+
+    if (current.hand.length > 0) {
+      return
+    }
+
+    if (state.drawPile.length === 0) {
+      state.currentPlayerIndex = nextPlayerIndex(
+        state,
+        state.currentPlayerIndex,
+      )
+      guard++
+      continue
     }
 
     const drawnCard = state.drawPile.pop()
 
     if (drawnCard) {
       current.hand.push(drawnCard)
-      checkForBooks(current)
     }
 
-    state.currentPlayerIndex = nextPlayerIndex(
-      state,
-      state.currentPlayerIndex,
-    )
-    guard++
+    return
   }
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSoloGameStore } from '@/stores/soloGame'
 import { useSettingsStore } from '@/stores/settings'
@@ -22,19 +22,21 @@ function setBotHandRef(id: string, el: Element | null) {
   botHandRefs.value[id] = el as HTMLElement | null
 }
 
-const { flyingCard, hiddenCardIds, isBusy, humanAsk } = useSoloTable({
-  getHandRect(playerId) {
-    const el = playerId === 'human' ? humanHandRef.value : botHandRefs.value[playerId]
-    return el?.getBoundingClientRect() ?? null
-  },
-  getPileRect() {
-    return pileRef.value?.getBoundingClientRect() ?? null
-  },
-})
+const { flyingCard, hiddenCardIds, isBusy, pendingReveal, confirmReveal, humanAsk } =
+  useSoloTable({
+    getHandRect(playerId) {
+      const el = playerId === 'human' ? humanHandRef.value : botHandRefs.value[playerId]
+      return el?.getBoundingClientRect() ?? null
+    },
+    getPileRect() {
+      return pileRef.value?.getBoundingClientRect() ?? null
+    },
+  })
 
 const game = computed(() => store.game)
 const human = computed(() => game.value?.players.find((p) => p.id === 'human') ?? null)
 const bots = computed(() => game.value?.players.filter((p) => !p.isHuman) ?? [])
+const targetableBots = computed(() => bots.value.filter((bot) => bot.hand.length > 0))
 const currentPlayer = computed(() =>
   game.value ? game.value.players[game.value.currentPlayerIndex] : null,
 )
@@ -47,9 +49,62 @@ const visibleHumanHand = computed(
   () => human.value?.hand.filter((card) => !hiddenCardIds.has(cardId(card))) ?? [],
 )
 
-const selectedRank = ref<Rank | null>(null)
-const selectedSuit = ref<Suit | null>(null)
+// Bagian belakang tiap buku selalu lengkap 4 kembang, jadi cukup 1 kartu
+// representatif (sekop) per rank untuk ditampilkan sebagai "chip" visual.
+function bookChip(rank: Rank): Card {
+  return { rank, suit: 'spades' }
+}
+
+// Chat bubble sekilas, bukan riwayat yang bisa di-scroll — supaya tidak
+// jadi contekan (bisa dibaca ulang) buat lawan "hard" atau nanti online.
+const bubbleText = ref<string | null>(null)
+let bubbleTimer: number | undefined
+
+watch(
+  () => store.log.length,
+  () => {
+    const latest = store.log[store.log.length - 1]
+
+    if (!latest) {
+      return
+    }
+
+    bubbleText.value = latest
+
+    if (bubbleTimer) {
+      window.clearTimeout(bubbleTimer)
+    }
+
+    bubbleTimer = window.setTimeout(() => {
+      bubbleText.value = null
+    }, 2400)
+  },
+)
+
+onBeforeUnmount(() => {
+  if (bubbleTimer) {
+    window.clearTimeout(bubbleTimer)
+  }
+})
+
+// Urutan menanya: lawan dulu, baru kartu (angka), baru kembang. Kalau cuma
+// ada 1 lawan yang masih punya kartu, langsung dianggap terpilih otomatis.
 const selectedTargetId = ref<string | null>(null)
+const selectedRank = ref<Rank | null>(null)
+
+const effectiveTargetId = computed(() => {
+  if (selectedTargetId.value) {
+    return selectedTargetId.value
+  }
+
+  return targetableBots.value.length === 1 ? (targetableBots.value[0]?.id ?? null) : null
+})
+
+const selectedTarget = computed(
+  () => bots.value.find((bot) => bot.id === effectiveTargetId.value) ?? null,
+)
+
+const needsTargetPick = computed(() => targetableBots.value.length > 1)
 
 const availableSuits = computed(() => {
   if (!selectedRank.value || !human.value) {
@@ -65,30 +120,40 @@ const availableSuits = computed(() => {
   return SUITS.filter((suit) => !owned.has(suit))
 })
 
+function selectTarget(botId: string) {
+  if (!isHumanTurn.value || isBusy.value || selectedRank.value) {
+    return
+  }
+
+  const bot = bots.value.find((candidate) => candidate.id === botId)
+
+  if (!bot || bot.hand.length === 0) {
+    return
+  }
+
+  selectedTargetId.value = botId
+}
+
 function selectCard(card: Card) {
-  if (!isHumanTurn.value || isBusy.value) {
+  if (!isHumanTurn.value || isBusy.value || !effectiveTargetId.value) {
     return
   }
 
   selectedRank.value = card.rank
-  selectedSuit.value = null
-  selectedTargetId.value = bots.value.length === 1 ? (bots.value[0]?.id ?? null) : null
 }
 
 function clearSelection() {
-  selectedRank.value = null
-  selectedSuit.value = null
   selectedTargetId.value = null
+  selectedRank.value = null
 }
 
-async function confirmAsk() {
-  if (!selectedRank.value || !selectedSuit.value || !selectedTargetId.value) {
+async function chooseSuit(suit: Suit) {
+  if (!effectiveTargetId.value || !selectedRank.value || isBusy.value) {
     return
   }
 
+  const targetId = effectiveTargetId.value
   const rank = selectedRank.value
-  const suit = selectedSuit.value
-  const targetId = selectedTargetId.value
 
   clearSelection()
   await humanAsk(rank, suit, targetId)
@@ -133,22 +198,34 @@ onMounted(() => {
       <p class="turn-indicator">
         Giliran:
         <strong>{{ currentPlayer?.name ?? '-' }}</strong>
+        <span
+          v-if="isHumanTurn && needsTargetPick && !selectedTargetId"
+          class="turn-hint"
+        >
+          — pilih lawan yang mau ditanya
+        </span>
       </p>
 
       <p class="difficulty-badge">{{ game.difficulty }}</p>
     </header>
 
     <section class="opponents-row">
-      <div
+      <button
         v-for="bot in bots"
         :key="bot.id"
+        type="button"
         class="opponent"
-        :class="{ 'is-current': currentPlayer?.id === bot.id }"
+        :class="{
+          'is-current': currentPlayer?.id === bot.id,
+          'is-out': bot.hand.length === 0,
+          'is-targetable':
+            isHumanTurn && !isBusy && !selectedRank && bot.hand.length > 0,
+          'is-selected-target': effectiveTargetId === bot.id,
+        }"
+        :disabled="!isHumanTurn || isBusy || !!selectedRank || bot.hand.length === 0"
+        @click="selectTarget(bot.id)"
       >
-        <p class="opponent-name">
-          {{ bot.name }}
-          <span class="opponent-books">📚 {{ bot.books.length }}</span>
-        </p>
+        <p class="opponent-name">{{ bot.name }}</p>
 
         <div
           class="opponent-hand"
@@ -162,8 +239,15 @@ onMounted(() => {
               :face-up="false"
             />
           </TransitionGroup>
+
+          <span
+            v-if="bot.hand.length === 0"
+            class="opponent-out-label"
+          >
+            Habis
+          </span>
         </div>
-      </div>
+      </button>
     </section>
 
     <section class="table-middle">
@@ -179,23 +263,43 @@ onMounted(() => {
         <span class="pile-count">{{ game.drawPile.length }} kartu</span>
       </div>
 
-      <ul class="books-board">
-        <li
+      <div class="books-board">
+        <div
           v-for="player in game.players"
           :key="player.id"
+          class="books-row"
         >
-          {{ player.name }}: <strong>{{ player.books.length }}</strong> buku
-        </li>
-      </ul>
+          <span class="books-row-name">{{ player.name }}</span>
+
+          <div class="books-row-cards">
+            <PlayingCard
+              v-for="(rank, index) in player.books"
+              :key="`${player.id}-book-${index}`"
+              size="xs"
+              face-up
+              :card="bookChip(rank)"
+            />
+            <span
+              v-if="player.books.length === 0"
+              class="books-row-empty"
+            >
+              —
+            </span>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="event-log">
-      <p
-        v-for="(entry, index) in store.log"
-        :key="index"
-      >
-        {{ entry }}
-      </p>
+    <section class="bubble-slot">
+      <Transition name="bubble">
+        <p
+          v-if="bubbleText"
+          :key="bubbleText"
+          class="chat-bubble"
+        >
+          {{ bubbleText }}
+        </p>
+      </Transition>
     </section>
 
     <section class="human-area">
@@ -211,67 +315,46 @@ onMounted(() => {
             face-up
             size="md"
             :selected="selectedRank === card.rank"
-            :disabled="!isHumanTurn || isBusy"
+            :disabled="!isHumanTurn || isBusy || !effectiveTargetId"
             @click="selectCard(card)"
           />
         </TransitionGroup>
       </div>
 
       <div
-        v-if="selectedRank"
+        v-if="effectiveTargetId"
         class="ask-controls"
       >
-        <p class="ask-title">
-          Tanya <strong>{{ rankLabel(selectedRank) }}</strong> kembang apa?
+        <p class="ask-breadcrumb">
+          Menanya <strong>{{ selectedTarget?.name }}</strong>
+          <template v-if="selectedRank">
+            → <strong>{{ rankLabel(selectedRank) }}</strong> → kembang apa?
+          </template>
+          <template v-else> — pilih kartu di tangan untuk ditanyakan </template>
         </p>
 
-        <div class="suit-picker">
+        <div
+          v-if="selectedRank"
+          class="suit-picker"
+        >
           <button
             v-for="suit in availableSuits"
             :key="suit"
             type="button"
             class="suit-button"
-            :class="{ active: selectedSuit === suit }"
-            @click="selectedSuit = suit"
+            @click="chooseSuit(suit)"
           >
             {{ suitGlyph(suit) }} {{ suitLabel(suit) }}
           </button>
         </div>
 
-        <div
-          v-if="bots.length > 1"
-          class="target-picker"
+        <button
+          type="button"
+          class="cancel-button"
+          @click="clearSelection"
         >
-          <button
-            v-for="bot in bots"
-            :key="bot.id"
-            type="button"
-            class="target-button"
-            :class="{ active: selectedTargetId === bot.id }"
-            @click="selectedTargetId = bot.id"
-          >
-            {{ bot.name }}
-          </button>
-        </div>
-
-        <div class="ask-actions">
-          <button
-            type="button"
-            class="cancel-button"
-            @click="clearSelection"
-          >
-            Batal
-          </button>
-
-          <button
-            type="button"
-            class="ask-button"
-            :disabled="!selectedSuit || !selectedTargetId || isBusy"
-            @click="confirmAsk"
-          >
-            Tanya!
-          </button>
-        </div>
+          Batal
+        </button>
       </div>
     </section>
 
@@ -282,6 +365,30 @@ onMounted(() => {
       :from="flyingCard.from"
       :to="flyingCard.to"
     />
+
+    <div
+      v-if="pendingReveal"
+      class="reveal-overlay"
+    >
+      <div class="reveal-card">
+        <p class="reveal-eyebrow">{{ pendingReveal.askerName }} bertanya</p>
+        <p class="reveal-question">
+          Apakah kamu punya
+          <strong>
+            {{ rankLabel(pendingReveal.rank) }} {{ suitLabel(pendingReveal.suit) }}
+          </strong>
+          ?
+        </p>
+
+        <button
+          type="button"
+          class="primary-button"
+          @click="confirmReveal"
+        >
+          {{ pendingReveal.willHit ? 'Berikan' : 'Cangkul' }}
+        </button>
+      </div>
+    </div>
 
     <div
       v-if="game.phase === 'finished'"
@@ -317,10 +424,13 @@ onMounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-height: 100dvh;
-  padding: 16px 20px 24px;
+  gap: 4px;
+  height: 100dvh;
+  padding: 6px 10px 8px;
+  overflow-y: auto;
   color: var(--text);
+  font-size: 11px;
+  line-height: 1.25;
   background:
     radial-gradient(circle at top, #153b30 0%, transparent 42%),
     linear-gradient(145deg, #06110e 0%, #081612 50%, #040a08 100%);
@@ -328,15 +438,18 @@ onMounted(() => {
 
 .table-topbar {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .leave-button {
-  padding: 8px 16px;
+  padding: 3px 10px;
   color: var(--muted);
+  font-size: 10px;
   font-weight: 800;
+  line-height: 1.4;
   cursor: pointer;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -351,18 +464,23 @@ onMounted(() => {
 .turn-indicator {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 10.5px;
 }
 
 .turn-indicator strong {
   color: var(--gold);
 }
 
+.turn-hint {
+  color: var(--muted);
+  font-style: italic;
+}
+
 .difficulty-badge {
   margin: 0;
-  padding: 4px 12px;
+  padding: 2px 8px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   border: 1px solid var(--border);
@@ -371,20 +489,25 @@ onMounted(() => {
 
 .opponents-row {
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 6px;
   justify-content: center;
-  padding: 8px 0;
 }
 
 .opponent {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
+  gap: 2px;
+  padding: 3px 6px;
+  color: inherit;
+  font: inherit;
+  line-height: 1.2;
+  cursor: default;
   border: 1px solid transparent;
-  border-radius: 16px;
+  border-radius: 10px;
+  background: none;
 }
 
 .opponent.is-current {
@@ -392,103 +515,169 @@ onMounted(() => {
   background: rgba(245, 185, 66, 0.06);
 }
 
+.opponent.is-targetable {
+  cursor: pointer;
+}
+
+.opponent.is-targetable:hover {
+  border-color: rgba(245, 185, 66, 0.3);
+  background: rgba(245, 185, 66, 0.04);
+}
+
+.opponent.is-selected-target {
+  border-color: var(--gold);
+  background: rgba(245, 185, 66, 0.1);
+}
+
+.opponent.is-out {
+  opacity: 0.45;
+}
+
+.opponent:disabled {
+  cursor: default;
+}
+
 .opponent-name {
-  display: flex;
-  gap: 8px;
-  align-items: center;
   margin: 0;
-  font-size: 12px;
+  font-size: 9.5px;
   font-weight: 800;
 }
 
-.opponent-books {
-  color: var(--muted);
-  font-weight: 600;
-}
-
 .opponent-hand {
+  position: relative;
   display: flex;
-  min-height: 64px;
+  min-height: 16px;
 }
 
 .opponent-hand > * {
-  margin-left: -20px;
+  margin-left: calc(var(--card-w, 26px) * -0.4);
 }
 
 .opponent-hand > *:first-child {
   margin-left: 0;
 }
 
+.opponent-out-label {
+  color: var(--muted);
+  font-size: 9px;
+  font-style: italic;
+}
+
 .table-middle {
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 28px;
-  padding: 6px 0;
+  gap: 10px;
 }
 
 .draw-pile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 
 .pile-count {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 9px;
 }
 
 .books-board {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  margin: 0;
-  padding: 0;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 110px;
+}
+
+.books-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.books-row-name {
+  flex: 0 0 auto;
+  min-width: 42px;
   color: var(--muted);
-  font-size: 12px;
-  list-style: none;
+  font-size: 9px;
+  font-weight: 700;
 }
 
-.books-board strong {
-  color: var(--gold);
+.books-row-cards {
+  display: flex;
+  align-items: center;
+  min-height: 12px;
 }
 
-.event-log {
-  max-height: 90px;
-  padding: 8px 14px;
-  overflow-y: auto;
+.books-row-cards > * {
+  margin-left: calc(var(--card-w, 14px) * -0.3);
+}
+
+.books-row-cards > *:first-child {
+  margin-left: 0;
+}
+
+.books-row-empty {
   color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.7;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.18);
+  font-size: 9px;
+  opacity: 0.6;
 }
 
-.event-log p {
+.bubble-slot {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+}
+
+.chat-bubble {
   margin: 0;
+  padding: 4px 12px;
+  max-width: 92%;
+  color: var(--text);
+  font-size: 9.5px;
+  text-align: center;
+  border: 1px solid rgba(245, 185, 66, 0.3);
+  border-radius: 999px;
+  background: rgba(18, 38, 32, 0.92);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.bubble-enter-active,
+.bubble-leave-active {
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.bubble-enter-from,
+.bubble-leave-to {
+  transform: translateY(6px);
+  opacity: 0;
 }
 
 .human-area {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  margin-top: auto;
-  padding-top: 10px;
+  justify-content: flex-end;
+  gap: 4px;
+  min-height: 0;
 }
 
 .human-hand {
   display: flex;
   justify-content: center;
-  min-height: 118px;
-  padding: 0 20px;
+  min-height: 48px;
+  padding: 0 10px;
 }
 
 .human-hand > * {
-  margin-left: -28px;
+  margin-left: calc(var(--card-w, 44px) * -0.38);
   cursor: pointer;
 }
 
@@ -500,32 +689,35 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  width: min(100%, 420px);
-  padding: 14px 18px;
+  gap: 5px;
+  width: min(100%, 300px);
+  padding: 6px 10px;
   border: 1px solid rgba(245, 185, 66, 0.35);
-  border-radius: 18px;
+  border-radius: 12px;
   background: rgba(7, 29, 23, 0.9);
 }
 
-.ask-title {
+.ask-breadcrumb {
   margin: 0;
-  font-size: 13px;
+  font-size: 10px;
+  text-align: center;
 }
 
-.suit-picker,
-.target-picker {
+.ask-breadcrumb strong {
+  color: var(--gold);
+}
+
+.suit-picker {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   justify-content: center;
 }
 
-.suit-button,
-.target-button {
-  padding: 8px 14px;
+.suit-button {
+  padding: 4px 9px;
   color: var(--text);
-  font-size: 12px;
+  font-size: 9.5px;
   font-weight: 700;
   cursor: pointer;
   border: 1px solid var(--border);
@@ -533,44 +725,66 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.suit-button.active,
-.target-button.active {
+.suit-button:hover {
   color: #172018;
   border-color: var(--gold);
   background: linear-gradient(135deg, var(--gold-light), var(--gold));
 }
 
-.ask-actions {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
 .cancel-button {
-  flex: 1;
-  padding: 10px;
+  width: 100%;
+  padding: 5px;
   color: var(--muted);
+  font-size: 9.5px;
   font-weight: 700;
   cursor: pointer;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: transparent;
 }
 
-.ask-button {
-  flex: 2;
-  padding: 10px;
-  color: #172018;
-  font-weight: 900;
-  cursor: pointer;
-  border: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+.reveal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  padding: 20px;
+  background: rgba(2, 8, 6, 0.7);
+  place-items: center;
 }
 
-.ask-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
+.reveal-card {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 320px);
+  padding: 22px;
+  text-align: center;
+  border: 1px solid rgba(245, 185, 66, 0.4);
+  border-radius: 20px;
+  background: linear-gradient(145deg, var(--card-light), var(--card-dark));
+}
+
+.reveal-eyebrow {
+  margin: 0;
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.reveal-question {
+  margin: 0;
+  font-size: 14px;
+}
+
+.reveal-question strong {
+  color: var(--gold);
+}
+
+.reveal-card .primary-button {
+  min-height: 46px;
+  margin-top: 4px;
 }
 
 .win-overlay {
@@ -585,19 +799,19 @@ onMounted(() => {
 
 .win-card {
   display: grid;
-  gap: 14px;
-  width: min(100%, 360px);
-  padding: 30px;
+  gap: 12px;
+  width: min(100%, 320px);
+  padding: 24px;
   text-align: center;
   border: 1px solid rgba(245, 185, 66, 0.4);
-  border-radius: 24px;
+  border-radius: 20px;
   background: linear-gradient(145deg, var(--card-light), var(--card-dark));
 }
 
 .win-eyebrow {
   margin: 0;
   color: var(--gold);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -605,25 +819,26 @@ onMounted(() => {
 
 .win-card h2 {
   margin: 0;
+  font-size: 20px;
 }
 
 .win-card ul {
   margin: 0;
   padding: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 11px;
   list-style: none;
 }
 
 .win-card .primary-button {
   width: 100%;
-  min-height: 50px;
-  margin-top: 8px;
+  min-height: 44px;
+  margin-top: 6px;
   color: #172018;
   font-weight: 900;
   cursor: pointer;
   border: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--gold-light), var(--gold));
 }
 
@@ -642,5 +857,19 @@ onMounted(() => {
 
 .card-pop-leave-active {
   position: absolute;
+}
+
+@media (max-width: 480px) {
+  .opponents-row {
+    gap: 4px;
+  }
+
+  .opponent {
+    padding: 2px 4px;
+  }
+
+  .books-board {
+    min-width: 0;
+  }
 }
 </style>

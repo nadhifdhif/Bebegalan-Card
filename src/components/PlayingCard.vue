@@ -7,7 +7,7 @@ const props = withDefaults(
   defineProps<{
     card?: Card
     faceUp?: boolean
-    size?: 'sm' | 'md' | 'lg'
+    size?: 'xs' | 'sm' | 'md' | 'lg'
     selected?: boolean
     disabled?: boolean
   }>(),
@@ -72,7 +72,7 @@ const glyph = computed(() => (props.card ? suitGlyph(props.card.suit) : '♠'))
 
 <style scoped>
 .playing-card {
-  --card-w: 84px;
+  --card-w: clamp(32px, 6vh, 44px);
 
   position: relative;
   width: var(--card-w);
@@ -83,20 +83,24 @@ const glyph = computed(() => (props.card ? suitGlyph(props.card.suit) : '♠'))
     filter 160ms ease;
 }
 
+.playing-card--xs {
+  --card-w: clamp(10px, 1.8vh, 15px);
+}
+
 .playing-card--sm {
-  --card-w: 46px;
+  --card-w: clamp(18px, 3.6vh, 26px);
 }
 
 .playing-card--md {
-  --card-w: 84px;
+  --card-w: clamp(32px, 6vh, 44px);
 }
 
 .playing-card--lg {
-  --card-w: 116px;
+  --card-w: clamp(40px, 7.5vh, 56px);
 }
 
 .playing-card.is-selected {
-  transform: translateY(-14px);
+  transform: translateY(-10px);
 }
 
 .playing-card.is-disabled {
@@ -121,7 +125,7 @@ const glyph = computed(() => (props.card ? suitGlyph(props.card.suit) : '♠'))
   inset: 0;
   display: grid;
   overflow: hidden;
-  border: 2px solid var(--gold);
+  border: max(1px, calc(var(--card-w) * 0.045)) solid var(--gold);
   border-radius: calc(var(--card-w) * 0.12);
   place-items: center;
   backface-visibility: hidden;
