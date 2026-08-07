@@ -20,7 +20,7 @@ export interface Card {
   suit: Suit
 }
 
-export type BotDifficulty = 'easy' | 'normal' | 'hard'
+export type BotDifficulty = 'sepele' | 'lumayan' | 'yahudi'
 
 export interface PlayerState {
   id: string
@@ -41,11 +41,4 @@ export interface GameState {
   difficulty: BotDifficulty
   /** cardId strings each player is known not to hold, keyed by player id. */
   missMemory: Record<string, string[]>
-}
-
-export interface AskResult {
-  hit: boolean
-  card: Card | null
-  drewFromPile: boolean
-  completedBooks: Rank[]
 }

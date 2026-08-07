@@ -242,22 +242,11 @@ onBeforeUnmount(() => {
 }
 
 .game-shell {
-  --background: #07110f;
-  --card-dark: #071d17;
-  --card-light: #173b30;
-  --border: rgba(255, 255, 255, 0.1);
-  --text: #f8f3e7;
-  --muted: #9eafa8;
-  --gold: #f5b942;
-  --gold-light: #ffdc78;
-  --green: #3ddc97;
-  --red: #ff646f;
-
   position: relative;
   display: grid;
   width: 100%;
   height: 100dvh;
-  min-height: 600px;
+  min-height: 500px;
   padding: 20px;
   overflow: hidden;
   color: var(--text);
@@ -325,9 +314,9 @@ onBeforeUnmount(() => {
 .flip-scene {
   position: relative;
   z-index: 4;
-  width: min(100%, 520px);
-  height: min(660px, calc(100dvh - 40px));
-  min-height: 580px;
+  width: min(100%, 450px);
+  height: min(560px, calc(100dvh - 32px));
+  min-height: 480px;
   perspective: 1800px;
 }
 
@@ -359,7 +348,7 @@ onBeforeUnmount(() => {
 
 .game-card {
   border: 1px solid var(--border);
-  border-radius: 30px;
+  border-radius: 26px;
   box-shadow:
     0 35px 90px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -369,7 +358,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 38px;
+  padding: 30px;
   transform: rotateY(0deg) translateZ(1px);
   background: linear-gradient(
     145deg,
@@ -379,7 +368,7 @@ onBeforeUnmount(() => {
 }
 
 .game-card--back {
-  padding: 38px;
+  padding: 30px;
   transform: rotateY(180deg) translateZ(1px);
   background:
     radial-gradient(
@@ -619,13 +608,13 @@ onBeforeUnmount(() => {
   }
 
   .flip-scene {
-    height: min(630px, calc(100dvh - 28px));
+    height: min(540px, calc(100dvh - 28px));
   }
 
   .game-card--front,
   .game-card--back {
-    padding: 27px 20px;
-    border-radius: 24px;
+    padding: 24px 18px;
+    border-radius: 22px;
   }
 
   .floating-card {
@@ -644,17 +633,17 @@ onBeforeUnmount(() => {
 
 @media (max-width: 440px) {
   .game-shell {
-    min-height: 560px;
+    min-height: 480px;
     padding: 8px;
   }
 
   .flip-scene {
     height: calc(100dvh - 16px);
-    min-height: 550px;
+    min-height: 440px;
   }
 
   .game-card--back {
-    padding: 22px 17px;
+    padding: 20px 15px;
   }
 
   .notification {

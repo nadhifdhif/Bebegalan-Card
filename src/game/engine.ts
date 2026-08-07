@@ -1,5 +1,4 @@
 import type {
-  AskResult,
   BotDifficulty,
   Card,
   GameState,
@@ -7,7 +6,7 @@ import type {
   Rank,
   Suit,
 } from './types'
-import { cardId, createDeck, shuffle } from './deck'
+import { SUITS, cardId, createDeck, shuffle } from './deck'
 
 const BOT_NAMES = ['Bot Andi', 'Bot Budi', 'Bot Citra', 'Bot Dedi', 'Bot Eka']
 
@@ -93,13 +92,28 @@ export function canAsk(player: PlayerState, rank: Rank): boolean {
   return player.hand.some((card) => card.rank === rank)
 }
 
-export function ask(
+export function hasRank(player: PlayerState, rank: Rank): boolean {
+  return player.hand.some((card) => card.rank === rank)
+}
+
+function recordMiss(state: GameState, targetId: string, id: string): void {
+  const known = state.missMemory[targetId] ?? []
+
+  if (!known.includes(id)) {
+    state.missMemory[targetId] = [...known, id]
+  }
+}
+
+/**
+ * Phase 1 of an ask: does the target hold this rank at all? Read-only —
+ * the actual suit is only guessed afterwards, and only if this is true.
+ */
+export function checkRank(
   state: GameState,
   askerId: string,
   targetId: string,
   rank: Rank,
-  suit: Suit,
-): AskResult {
+): boolean {
   const asker = state.players.find((player) => player.id === askerId)
   const target = state.players.find((player) => player.id === targetId)
 
@@ -109,6 +123,72 @@ export function ask(
 
   if (!canAsk(asker, rank)) {
     throw new Error('Kamu cuma boleh menanyakan angka yang kamu pegang.')
+  }
+
+  return hasRank(target, rank)
+}
+
+export interface RankMissResult {
+  card: Card | null
+  completedBooks: Rank[]
+}
+
+/**
+ * The rank doesn't exist in the target's hand at all — straight to
+ * cangkul, no suit is ever guessed for this ask.
+ */
+export function resolveRankMiss(
+  state: GameState,
+  askerId: string,
+  targetId: string,
+  rank: Rank,
+): RankMissResult {
+  const asker = state.players.find((player) => player.id === askerId)
+
+  if (!asker) {
+    throw new Error('Pemain tidak ditemukan.')
+  }
+
+  for (const suit of SUITS) {
+    recordMiss(state, targetId, cardId({ rank, suit }))
+  }
+
+  const drawnCard = state.drawPile.pop() ?? null
+
+  if (drawnCard) {
+    asker.hand.push(drawnCard)
+  }
+
+  state.currentPlayerIndex = nextPlayerIndex(state, state.currentPlayerIndex)
+
+  const completedBooks = checkForBooks(asker)
+
+  return { card: drawnCard, completedBooks }
+}
+
+export interface SuitGuessResult {
+  hit: boolean
+  card: Card | null
+  completedBooks: Rank[]
+}
+
+/**
+ * Phase 2 of an ask, only reachable once checkRank() is true: guess which
+ * of the target's suits it is. Exact match is required to actually get
+ * the card — otherwise it's a cangkul, same as a rank miss.
+ */
+export function guessSuit(
+  state: GameState,
+  askerId: string,
+  targetId: string,
+  rank: Rank,
+  suit: Suit,
+): SuitGuessResult {
+  const asker = state.players.find((player) => player.id === askerId)
+  const target = state.players.find((player) => player.id === targetId)
+
+  if (!asker || !target) {
+    throw new Error('Pemain tidak ditemukan.')
   }
 
   const hitIndex = target.hand.findIndex(
@@ -126,15 +206,10 @@ export function ask(
 
     const completedBooks = checkForBooks(asker)
 
-    return { hit: true, card, drewFromPile: false, completedBooks }
+    return { hit: true, card, completedBooks }
   }
 
-  const missedCardId = cardId({ rank, suit })
-  const known = state.missMemory[target.id] ?? []
-
-  if (!known.includes(missedCardId)) {
-    state.missMemory[target.id] = [...known, missedCardId]
-  }
+  recordMiss(state, targetId, cardId({ rank, suit }))
 
   const drawnCard = state.drawPile.pop() ?? null
 
@@ -146,12 +221,7 @@ export function ask(
 
   const completedBooks = checkForBooks(asker)
 
-  return {
-    hit: false,
-    card: drawnCard,
-    drewFromPile: drawnCard !== null,
-    completedBooks,
-  }
+  return { hit: false, card: drawnCard, completedBooks }
 }
 
 export function nextPlayerIndex(state: GameState, from: number): number {
