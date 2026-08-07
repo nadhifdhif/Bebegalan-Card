@@ -55,9 +55,9 @@ const router = useRouter()
   </div>
 
   <footer class="menu-footer">
-    <span>v0.1.0</span>
+    <span>v0.1.1</span>
     <span class="footer-dot"></span>
-    <span>Made for tongkrongan</span>
+    <span>Author: Naufal Nadhif Rabbani Iskandar</span>
   </footer>
 </template>
 

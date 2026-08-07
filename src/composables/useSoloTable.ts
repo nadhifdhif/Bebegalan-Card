@@ -5,6 +5,13 @@ import { pickBotAsk } from '@/game/bot'
 import { cardId, cardLabel } from '@/game/deck'
 import type { Card, PlayerState, Rank, Suit } from '@/game/types'
 
+export interface PendingReveal {
+  askerName: string
+  rank: Rank
+  suit: Suit
+  willHit: boolean
+}
+
 const FLIGHT_MS = 650
 const BOT_PAUSE_MS = 550
 
@@ -30,6 +37,26 @@ export function useSoloTable(rects: HandRectProvider) {
   const flyingCard = ref<FlyingCardState | null>(null)
   const hiddenCardIds = reactive(new Set<string>())
   const isBusy = ref(false)
+  const pendingReveal = ref<PendingReveal | null>(null)
+
+  let resolvePendingReveal: (() => void) | null = null
+
+  function waitForReveal(askerName: string, rank: Rank, suit: Suit) {
+    return new Promise<void>((resolve) => {
+      const human = store.game?.players.find((player) => player.id === 'human')
+      const willHit =
+        human?.hand.some((card) => card.rank === rank && card.suit === suit) ?? false
+
+      pendingReveal.value = { askerName, rank, suit, willHit }
+      resolvePendingReveal = resolve
+    })
+  }
+
+  function confirmReveal() {
+    pendingReveal.value = null
+    resolvePendingReveal?.()
+    resolvePendingReveal = null
+  }
 
   function playerById(id: string): PlayerState | undefined {
     return store.game?.players.find((player) => player.id === id)
@@ -153,6 +180,10 @@ export function useSoloTable(rects: HandRectProvider) {
         continue
       }
 
+      if (choice.targetId === 'human') {
+        await waitForReveal(current.name, choice.rank, choice.suit)
+      }
+
       await performAsk(current.id, choice.targetId, choice.rank, choice.suit)
       await sleep(BOT_PAUSE_MS)
     }
@@ -183,6 +214,8 @@ export function useSoloTable(rects: HandRectProvider) {
     flyingCard,
     hiddenCardIds,
     isBusy,
+    pendingReveal,
+    confirmReveal,
     humanAsk,
   }
 }
