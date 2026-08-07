@@ -11,17 +11,27 @@ Status: **under development**. Dibangun bertahap per-milestone.
 - Pemain: **2-6 orang**, satu dek kartu remi standar (52 kartu, tanpa joker).
 - Pembagian kartu awal: 7 kartu/pemain untuk 2 pemain, 5 kartu/pemain untuk
   3-6 pemain (konvensi Go Fish standar). Sisanya jadi tumpukan **cangkulan**.
-- Saat giliran, pemain harus menyebutkan **angka DAN kembang spesifik**
-  (mis. "As Hati"), bukan cuma angka seperti Go Fish.
+- Saat giliran, alur bertanya **dua tahap** (bukan langsung angka+kembang
+  sekaligus seperti asumsi awal):
+  1. **Tanya angka** — sebutkan salah satu angka yang kamu pegang (mis.
+     "As") ke satu lawan. Lawan cuma mengungkap **apakah dia punya angka
+     itu atau tidak** — kembangnya belum ditanyakan sama sekali di tahap
+     ini.
+  2. Kalau lawan **tidak punya angkanya sama sekali**, kembang tidak pernah
+     ditanyakan — penanya langsung **cangkul** (ambil 1 kartu dari
+     tumpukan cangkulan), giliran pindah ke pemain berikutnya.
+  3. Kalau lawan **punya**, penanya baru menebak **kembang spesifiknya**
+     (mis. "Sekop"):
+     - Tebakan benar (hit): lawan wajib memberi **1 kartu itu saja** (bukan
+       semua kartu senilai itu seperti Go Fish). Penanya **tetap pegang
+       giliran** dan boleh bertanya lagi (ke lawan yang sama atau lawan
+       lain).
+     - Tebakan meleset (miss): penanya cangkul, giliran pindah ke pemain
+       berikutnya — sama seperti kasus angka tidak ada di atas.
   - Kembang pakai istilah lokal: **tempe** (diamond), **keriting** (clubs),
     **hati** (hearts), **sekop** (spades).
   - Pemain hanya boleh bertanya untuk angka yang dia punya minimal 1 di
     tangan.
-- **Tebakan benar (hit):** lawan wajib memberi **1 kartu itu saja** (bukan
-  semua kartu senilai itu seperti Go Fish). Penanya **tetap pegang giliran**
-  dan boleh bertanya lagi (ke lawan yang sama atau lawan lain).
-- **Tebakan salah (miss):** penanya **cangkul** (ambil 1 kartu dari
-  tumpukan cangkulan), lalu giliran pindah ke pemain berikutnya.
 - **Set/buku:** satu angka otomatis jadi "buku" begitu seorang pemain
   memegang ke-4 kembang dari angka itu (tempe+keriting+hati+sekop).
 - **Menang:** ketika seluruh 52 kartu sudah masuk ke buku seseorang, atau
@@ -60,7 +70,7 @@ src/
     soloGame.ts                 # Pinia: state permainan Solo Player
   composables/
     useNotification.ts
-    useSoloTable.ts              # alur giliran + animasi kartu utk SoloTableView
+    useSoloTable.ts              # alur giliran (tanya-angka lalu tebak-kembang, 2 tahap) + animasi kartu
   components/
     PlayingCard.vue              # satu kartu (flip depan/belakang)
     FlyingCard.vue                # animasi kartu berpindah antar tangan/pile
@@ -74,19 +84,39 @@ Solo Player punya game engine Bebegalan yang sungguhan jalan di
 `src/game/` (`types.ts`, `deck.ts`, `engine.ts`, `bot.ts`) — ditulis
 sebagai TypeScript murni tanpa dependency Vue sama sekali, supaya bisa
 dipindah utuh ke `packages/shared` nanti (lihat roadmap M4) tanpa ditulis
-ulang. **Solo Offline memang sengaja tidak lewat backend** — lawan main
+ulang. **Solo Player memang sengaja tidak lewat backend** — lawan main
 cuma bot lokal, jadi tidak ada yang perlu disinkronkan lewat server; itu
-berlaku selamanya, bukan cuma sementara sampai M2 selesai.
+berlaku selamanya, bukan cuma sementara sampai M3 selesai.
 
-Bot punya 3 level (`easy`/`normal`/`hard`) yang bedanya cara mereka
-memilih apa yang ditanyakan — level lebih tinggi mengingat tebakan yang
+Engine-nya memisahkan cek-angka (`checkRank`) dari tebak-kembang
+(`guessSuit`) sebagai dua fungsi terpisah, persis alur dua tahap di atas —
+kalau angkanya saja sudah tidak ada, `guessSuit` tidak pernah dipanggil.
+
+Bot punya 3 level kesulitan (tipe `BotDifficulty` di `src/game/types.ts`):
+**Sepele**, **Lumayan**, dan satu level tersulit yang di dokumen ini kita
+sebut **"mode licik"** (nama tombolnya sendiri di UI beda, cek langsung
+kodenya kalau perlu persisnya). Level lebih tinggi mengingat tebakan yang
 sudah pernah meleset dan memprioritaskan angka yang paling dekat jadi
-buku. Aset 52 kartu ada di `src/assets/cards/` (lihat `CREDITS.md` di
+buku. Khusus di **mode licik**, ada 10% kesempatan menu tebak-kembang juga
+menawarkan kembang yang sudah kamu pegang sendiri (buat mancing/bluff),
+walau lawan mustahil betulan pegang kartu yang sama persis.
+
+Aset 52 kartu ada di `src/assets/cards/` (lihat `CREDITS.md` di
 folder itu untuk lisensinya).
+
+### Gaya bahasa UI
+
+Nama komponen/route tetap bahasa Inggris/teknis (`solo-player`,
+`multiplayer`, `SoloPlayerView.vue`, dst) supaya konsisten buat
+development, tapi **teks yang tampil ke pemain** sengaja pakai gaya santai
+"tongkrongan" (mis. tombol menu "Begal Online" / "Begal Sendiri" /
+"Pengaturan Begal", bukan istilah formal seperti "Multiplayer"/"Settings")
+sesuai identitas **Begal Kartu**. Kalau nambah teks baru yang tampil ke
+user, ikuti gaya ini.
 
 ## Arsitektur target (rencana, belum diimplementasikan)
 
-Kalau/ketika backend digarap (mulai M2 di roadmap), rencananya migrasi ke
+Kalau/ketika backend digarap (mulai M3 di roadmap), rencananya migrasi ke
 monorepo pnpm workspaces:
 
 ```
@@ -113,8 +143,9 @@ harus menambah infra broadcasting terpisah.
 - [x] **M1** — Refactor frontend jadi per-fitur (`home` / `settings` /
       `solo-player` / `multiplayer`) + routing, shared design-system CSS
 - [x] **M2** — Solo Player bisa dimainkan end-to-end: game engine Bebegalan
-      (`src/game/`), 52 aset kartu asli, animasi bagi/tanya/hit/miss, bot
-      easy/normal/hard — 100% client-side, tanpa backend
+      (`src/game/`) dengan alur tanya-angka lalu tebak-kembang dua tahap,
+      52 aset kartu asli, animasi bagi/tanya/hit/miss, 3 level bot
+      (Sepele/Lumayan/mode licik) — 100% client-side, tanpa backend
 - [ ] **M3** — Scaffold backend (NestJS + Socket.IO) — **khusus untuk
       Multiplayer/Online Room**, bukan Solo (Solo tetap client-side
       selamanya, lihat catatan di bagian Solo Player)
