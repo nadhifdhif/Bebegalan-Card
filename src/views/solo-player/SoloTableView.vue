@@ -7,7 +7,7 @@ import { useSoloTable } from '@/composables/useSoloTable'
 import PlayingCard from '@/components/PlayingCard.vue'
 import FlyingCard from '@/components/FlyingCard.vue'
 import { SUITS, cardId, rankLabel, suitGlyph, suitLabel } from '@/game/deck'
-import type { BotDifficulty, Card, Rank, Suit } from '@/game/types'
+import type { BotDifficulty, Card, Rank } from '@/game/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,16 +22,24 @@ function setBotHandRef(id: string, el: Element | null) {
   botHandRefs.value[id] = el as HTMLElement | null
 }
 
-const { flyingCard, hiddenCardIds, isBusy, pendingReveal, confirmReveal, humanAsk } =
-  useSoloTable({
-    getHandRect(playerId) {
-      const el = playerId === 'human' ? humanHandRef.value : botHandRefs.value[playerId]
-      return el?.getBoundingClientRect() ?? null
-    },
-    getPileRect() {
-      return pileRef.value?.getBoundingClientRect() ?? null
-    },
-  })
+const {
+  flyingCard,
+  hiddenCardIds,
+  isBusy,
+  pendingReveal,
+  pendingSuitChoice,
+  confirmReveal,
+  chooseSuitForPending,
+  humanAskRank,
+} = useSoloTable({
+  getHandRect(playerId) {
+    const el = playerId === 'human' ? humanHandRef.value : botHandRefs.value[playerId]
+    return el?.getBoundingClientRect() ?? null
+  },
+  getPileRect() {
+    return pileRef.value?.getBoundingClientRect() ?? null
+  },
+})
 
 const game = computed(() => store.game)
 const human = computed(() => game.value?.players.find((p) => p.id === 'human') ?? null)
@@ -106,14 +114,17 @@ const selectedTarget = computed(
 
 const needsTargetPick = computed(() => targetableBots.value.length > 1)
 
-const availableSuits = computed(() => {
-  if (!selectedRank.value || !human.value) {
+// Kembang yang boleh ditebak saat rank sudah dikonfirmasi ada di tangan
+// lawan — kembang yang sudah kita pegang sendiri tidak mungkin dipegang
+// lawan juga (satu kartu cuma ada satu di seluruh dek).
+const pendingAvailableSuits = computed(() => {
+  if (!pendingSuitChoice.value || !human.value) {
     return []
   }
 
   const owned = new Set(
     human.value.hand
-      .filter((card) => card.rank === selectedRank.value)
+      .filter((card) => card.rank === pendingSuitChoice.value?.rank)
       .map((card) => card.suit),
   )
 
@@ -147,7 +158,7 @@ function clearSelection() {
   selectedRank.value = null
 }
 
-async function chooseSuit(suit: Suit) {
+async function submitRankAsk() {
   if (!effectiveTargetId.value || !selectedRank.value || isBusy.value) {
     return
   }
@@ -156,7 +167,7 @@ async function chooseSuit(suit: Suit) {
   const rank = selectedRank.value
 
   clearSelection()
-  await humanAsk(rank, suit, targetId)
+  await humanAskRank(rank, targetId)
 }
 
 function leaveTable() {
@@ -168,9 +179,7 @@ onMounted(() => {
   settingsStore.load()
 
   const playersRaw = Number(route.query.players)
-  const playerCount = [2, 3, 4, 5, 6].includes(playersRaw)
-    ? (playersRaw as 2 | 3 | 4 | 5 | 6)
-    : 2
+  const playerCount = [2, 3, 4, 5, 6].includes(playersRaw) ? (playersRaw as 2 | 3 | 4 | 5 | 6) : 2
 
   const difficultyRaw = route.query.difficulty
   const difficulty: BotDifficulty =
@@ -187,21 +196,12 @@ onMounted(() => {
     :class="{ 'reduced-motion': !settingsStore.animationsEnabled }"
   >
     <header class="table-topbar">
-      <button
-        class="leave-button"
-        type="button"
-        @click="leaveTable"
-      >
-        × Keluar
-      </button>
+      <button class="leave-button" type="button" @click="leaveTable">× Keluar</button>
 
       <p class="turn-indicator">
         Giliran:
         <strong>{{ currentPlayer?.name ?? '-' }}</strong>
-        <span
-          v-if="isHumanTurn && needsTargetPick && !selectedTargetId"
-          class="turn-hint"
-        >
+        <span v-if="isHumanTurn && needsTargetPick && !selectedTargetId" class="turn-hint">
           — pilih lawan yang mau ditanya
         </span>
       </p>
@@ -218,8 +218,7 @@ onMounted(() => {
         :class="{
           'is-current': currentPlayer?.id === bot.id,
           'is-out': bot.hand.length === 0,
-          'is-targetable':
-            isHumanTurn && !isBusy && !selectedRank && bot.hand.length > 0,
+          'is-targetable': isHumanTurn && !isBusy && !selectedRank && bot.hand.length > 0,
           'is-selected-target': effectiveTargetId === bot.id,
         }"
         :disabled="!isHumanTurn || isBusy || !!selectedRank || bot.hand.length === 0"
@@ -227,10 +226,7 @@ onMounted(() => {
       >
         <p class="opponent-name">{{ bot.name }}</p>
 
-        <div
-          class="opponent-hand"
-          :ref="(el) => setBotHandRef(bot.id, el as Element | null)"
-        >
+        <div class="opponent-hand" :ref="(el) => setBotHandRef(bot.id, el as Element | null)">
           <TransitionGroup name="card-pop">
             <PlayingCard
               v-for="(card, index) in bot.hand"
@@ -240,51 +236,30 @@ onMounted(() => {
             />
           </TransitionGroup>
 
-          <span
-            v-if="bot.hand.length === 0"
-            class="opponent-out-label"
-          >
-            Habis
-          </span>
+          <span v-if="bot.hand.length === 0" class="opponent-out-label"> Habis </span>
         </div>
       </button>
     </section>
 
     <section class="table-middle">
-      <div
-        ref="pileRef"
-        class="draw-pile"
-      >
-        <PlayingCard
-          v-if="game.drawPile.length > 0"
-          :face-up="false"
-          size="md"
-        />
+      <div ref="pileRef" class="draw-pile">
+        <PlayingCard v-if="game.drawPile.length > 0" :face-up="false" size="md" />
         <span class="pile-count">{{ game.drawPile.length }} kartu</span>
       </div>
 
       <div class="books-board">
-        <div
-          v-for="player in game.players"
-          :key="player.id"
-          class="books-row"
-        >
+        <div v-for="player in game.players" :key="player.id" class="books-row">
           <span class="books-row-name">{{ player.name }}</span>
 
           <div class="books-row-cards">
             <PlayingCard
               v-for="(rank, index) in player.books"
               :key="`${player.id}-book-${index}`"
-              size="xs"
+              size="md"
               face-up
               :card="bookChip(rank)"
             />
-            <span
-              v-if="player.books.length === 0"
-              class="books-row-empty"
-            >
-              —
-            </span>
+            <span v-if="player.books.length === 0" class="books-row-empty"> — </span>
           </div>
         </div>
       </div>
@@ -292,28 +267,21 @@ onMounted(() => {
 
     <section class="bubble-slot">
       <Transition name="bubble">
-        <p
-          v-if="bubbleText"
-          :key="bubbleText"
-          class="chat-bubble"
-        >
+        <p v-if="bubbleText" :key="bubbleText" class="chat-bubble">
           {{ bubbleText }}
         </p>
       </Transition>
     </section>
 
     <section class="human-area">
-      <div
-        ref="humanHandRef"
-        class="human-hand"
-      >
+      <div ref="humanHandRef" class="human-hand">
         <TransitionGroup name="card-pop">
           <PlayingCard
             v-for="card in visibleHumanHand"
             :key="cardId(card)"
             :card="card"
             face-up
-            size="md"
+            size="lg"
             :selected="selectedRank === card.rank"
             :disabled="!isHumanTurn || isBusy || !effectiveTargetId"
             @click="selectCard(card)"
@@ -321,40 +289,46 @@ onMounted(() => {
         </TransitionGroup>
       </div>
 
-      <div
-        v-if="effectiveTargetId"
-        class="ask-controls"
-      >
+      <div v-if="pendingSuitChoice" class="ask-controls">
         <p class="ask-breadcrumb">
-          Menanya <strong>{{ selectedTarget?.name }}</strong>
-          <template v-if="selectedRank">
-            → <strong>{{ rankLabel(selectedRank) }}</strong> → kembang apa?
-          </template>
-          <template v-else> — pilih kartu di tangan untuk ditanyakan </template>
+          <strong>{{ pendingSuitChoice.targetName }}</strong> punya kartu
+          <strong>{{ rankLabel(pendingSuitChoice.rank) }}</strong> — tebak kembangnya:
         </p>
 
-        <div
-          v-if="selectedRank"
-          class="suit-picker"
-        >
+        <div class="suit-picker">
           <button
-            v-for="suit in availableSuits"
+            v-for="suit in pendingAvailableSuits"
             :key="suit"
             type="button"
             class="suit-button"
-            @click="chooseSuit(suit)"
+            @click="chooseSuitForPending(suit)"
           >
             {{ suitGlyph(suit) }} {{ suitLabel(suit) }}
           </button>
         </div>
+      </div>
+
+      <div v-else-if="effectiveTargetId" class="ask-controls">
+        <p class="ask-breadcrumb">
+          Menanya <strong>{{ selectedTarget?.name }}</strong>
+          <template v-if="selectedRank">
+            → apakah punya <strong>{{ rankLabel(selectedRank) }}</strong
+            >?
+          </template>
+          <template v-else> — pilih kartu di tangan untuk ditanyakan </template>
+        </p>
 
         <button
+          v-if="selectedRank"
           type="button"
-          class="cancel-button"
-          @click="clearSelection"
+          class="ask-submit"
+          :disabled="isBusy"
+          @click="submitRankAsk"
         >
-          Batal
+          Tanya
         </button>
+
+        <button type="button" class="cancel-button" @click="clearSelection">Batal</button>
       </div>
     </section>
 
@@ -366,54 +340,38 @@ onMounted(() => {
       :to="flyingCard.to"
     />
 
-    <div
-      v-if="pendingReveal"
-      class="reveal-overlay"
-    >
+    <div v-if="pendingReveal" class="reveal-overlay">
       <div class="reveal-card">
-        <p class="reveal-eyebrow">{{ pendingReveal.askerName }} bertanya</p>
-        <p class="reveal-question">
-          Apakah kamu punya
-          <strong>
-            {{ rankLabel(pendingReveal.rank) }} {{ suitLabel(pendingReveal.suit) }}
-          </strong>
+        <p class="reveal-eyebrow">
+          {{ pendingReveal.askerName }} {{ pendingReveal.suit ? 'menebak' : 'bertanya' }}
+        </p>
+        <p v-if="!pendingReveal.suit" class="reveal-question">
+          Apakah kamu punya kartu
+          <strong>{{ rankLabel(pendingReveal.rank) }}</strong>
+          ?
+        </p>
+        <p v-else class="reveal-question">
+          Apakah kartumu benar
+          <strong> {{ rankLabel(pendingReveal.rank) }} {{ suitLabel(pendingReveal.suit) }} </strong>
           ?
         </p>
 
-        <button
-          type="button"
-          class="primary-button"
-          @click="confirmReveal"
-        >
-          {{ pendingReveal.willHit ? 'Berikan' : 'Cangkul' }}
-        </button>
+        <button type="button" class="primary-button" @click="confirmReveal">Cek</button>
       </div>
     </div>
 
-    <div
-      v-if="game.phase === 'finished'"
-      class="win-overlay"
-    >
+    <div v-if="game.phase === 'finished'" class="win-overlay">
       <div class="win-card">
         <p class="win-eyebrow">Permainan selesai</p>
         <h2>{{ winner?.name ?? 'Tidak ada' }} menang!</h2>
 
         <ul>
-          <li
-            v-for="player in game.players"
-            :key="player.id"
-          >
+          <li v-for="player in game.players" :key="player.id">
             {{ player.name }} — {{ player.books.length }} buku
           </li>
         </ul>
 
-        <button
-          type="button"
-          class="primary-button"
-          @click="leaveTable"
-        >
-          Kembali ke Menu
-        </button>
+        <button type="button" class="primary-button" @click="leaveTable">Kembali ke Menu</button>
       </div>
     </div>
   </div>
@@ -424,6 +382,7 @@ onMounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: space-evenly;
   gap: 4px;
   height: 100dvh;
   padding: 6px 10px 8px;
@@ -661,12 +620,10 @@ onMounted(() => {
 
 .human-area {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
   gap: 4px;
-  min-height: 0;
 }
 
 .human-hand {
@@ -729,6 +686,23 @@ onMounted(() => {
   color: #172018;
   border-color: var(--gold);
   background: linear-gradient(135deg, var(--gold-light), var(--gold));
+}
+
+.ask-submit {
+  width: 100%;
+  padding: 6px;
+  color: #172018;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+}
+
+.ask-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .cancel-button {

@@ -24,7 +24,7 @@ const router = useRouter()
     </h1>
 
     <p class="tagline">
-      Tebak kartunya. Rebut kartunya. Kuasai meja.
+      Tebak kartunya, Begal Kartunya WKWKWK
     </p>
   </header>
 
@@ -34,7 +34,7 @@ const router = useRouter()
       type="button"
       @click.stop="router.push({ name: 'multiplayer' })"
     >
-      Online Room
+      Begal Online
     </button>
 
     <button
@@ -42,7 +42,7 @@ const router = useRouter()
       type="button"
       @click.stop="router.push({ name: 'solo-player' })"
     >
-      Solo Player
+      Begal Sendiri
     </button>
 
     <button
@@ -50,14 +50,14 @@ const router = useRouter()
       type="button"
       @click.stop="router.push({ name: 'settings' })"
     >
-      Settings
+      Pengaturan Begal
     </button>
   </div>
 
   <footer class="menu-footer">
-    <span>v0.1.1</span>
+    <span>v0.1.0</span>
     <span class="footer-dot"></span>
-    <span>Author: Naufal Nadhif Rabbani Iskandar</span>
+    <span>Made for tongkrongan</span>
   </footer>
 </template>
 
@@ -74,7 +74,7 @@ const router = useRouter()
 .brand-header {
   position: relative;
   z-index: 1;
-  margin-bottom: 34px;
+  margin-bottom: 26px;
   text-align: center;
 }
 
@@ -83,9 +83,9 @@ const router = useRouter()
   gap: 8px;
   align-items: center;
   justify-content: center;
-  padding: 8px 15px;
-  margin-bottom: 16px;
-  font-size: 14px;
+  padding: 6px 13px;
+  margin-bottom: 13px;
+  font-size: 13px;
   border: 1px solid rgba(245, 185, 66, 0.3);
   border-radius: 999px;
   background: rgba(245, 185, 66, 0.08);
@@ -98,7 +98,7 @@ const router = useRouter()
 
 h1 {
   margin: 0;
-  font-size: clamp(42px, 8vw, 66px);
+  font-size: clamp(36px, 7vw, 56px);
   font-weight: 950;
   line-height: 0.95;
   letter-spacing: -0.065em;
@@ -113,29 +113,29 @@ h1 span {
 }
 
 .tagline {
-  max-width: 360px;
-  margin: 18px auto 0;
+  max-width: 340px;
+  margin: 14px auto 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .menu-options {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 12px;
-  width: min(100%, 410px);
+  gap: 10px;
+  width: min(100%, 380px);
   margin: 0 auto;
 }
 
 .menu-option {
   display: grid;
   width: 100%;
-  min-height: 58px;
-  padding: 12px 20px;
+  min-height: 50px;
+  padding: 10px 16px;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 850;
   text-align: center;
   cursor: pointer;
@@ -168,9 +168,9 @@ h1 span {
   gap: 10px;
   align-items: center;
   justify-content: center;
-  margin-top: 28px;
+  margin-top: 20px;
   color: #72827c;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .footer-dot {

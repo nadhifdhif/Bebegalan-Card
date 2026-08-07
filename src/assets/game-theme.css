@@ -33,18 +33,18 @@
 }
 
 .panel-header {
-  margin-bottom: 25px;
+  margin-bottom: 19px;
 }
 
 .panel-emblem {
   display: grid;
-  width: 58px;
-  height: 58px;
-  margin-bottom: 19px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
   color: var(--gold);
-  font-size: 25px;
+  font-size: 21px;
   border: 1px solid rgba(245, 185, 66, 0.35);
-  border-radius: 17px;
+  border-radius: 15px;
   place-items: center;
   background: rgba(245, 185, 66, 0.09);
 }
@@ -59,23 +59,23 @@
 
 .panel-header h2 {
   margin: 0;
-  font-size: 34px;
+  font-size: 28px;
   line-height: 1.1;
 }
 
 .panel-description {
-  max-width: 370px;
-  margin: 9px 0 0;
+  max-width: 350px;
+  margin: 7px 0 0;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .input-label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 750;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -84,13 +84,13 @@
 .primary-button,
 .secondary-button {
   width: 100%;
-  min-height: 55px;
-  padding: 14px 18px;
+  min-height: 46px;
+  padding: 11px 16px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
-  border-radius: 15px;
+  border-radius: 13px;
   transition:
     transform 180ms ease,
     filter 180ms ease,
@@ -99,7 +99,7 @@
 }
 
 .primary-button {
-  margin-top: 14px;
+  margin-top: 11px;
   color: #172018;
   border: 0;
   background: linear-gradient(
@@ -219,26 +219,20 @@
   transition-duration: 0.001ms !important;
 }
 
-@media (max-width: 760px) {
-  .panel-header h2 {
-    font-size: 30px;
-  }
-}
-
 @media (max-width: 440px) {
   .panel-header {
-    margin-bottom: 17px;
+    margin-bottom: 14px;
   }
 
   .panel-emblem {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 13px;
-    font-size: 21px;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 11px;
+    font-size: 18px;
   }
 
   .panel-header h2 {
-    font-size: 27px;
+    font-size: 24px;
   }
 
   .panel-description {
@@ -247,6 +241,6 @@
 
   .primary-button,
   .secondary-button {
-    min-height: 48px;
+    min-height: 42px;
   }
 }

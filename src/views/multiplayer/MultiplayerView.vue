@@ -124,17 +124,17 @@ onMounted(() => {
 <style scoped>
 .room-input {
   width: 100%;
-  min-height: 60px;
-  padding: 14px 18px;
+  min-height: 50px;
+  padding: 11px 15px;
   color: var(--text);
   font: inherit;
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 850;
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   border: 1px solid var(--border);
-  border-radius: 15px;
+  border-radius: 13px;
   outline: none;
   background: rgba(0, 0, 0, 0.2);
   transition:
@@ -155,8 +155,8 @@ onMounted(() => {
 
 @media (max-width: 440px) {
   .room-input {
-    min-height: 53px;
-    font-size: 16px;
+    min-height: 46px;
+    font-size: 15px;
   }
 }
 </style>

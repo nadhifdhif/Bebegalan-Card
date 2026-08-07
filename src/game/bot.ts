@@ -1,10 +1,9 @@
 import type { GameState, PlayerState, Rank, Suit } from './types'
 import { SUITS, cardId, shuffle } from './deck'
 
-export interface BotChoice {
+export interface BotRankChoice {
   targetId: string
   rank: Rank
-  suit: Suit
 }
 
 function ownedRanks(player: PlayerState): Rank[] {
@@ -33,7 +32,25 @@ function pickRandom<T>(items: T[]): T | undefined {
   return items[Math.floor(Math.random() * items.length)]
 }
 
-export function pickBotAsk(state: GameState, botId: string): BotChoice | null {
+function unknownSuits(
+  state: GameState,
+  targetId: string,
+  rank: Rank,
+  suits: Suit[],
+): Suit[] {
+  const known = state.missMemory[targetId] ?? []
+
+  return suits.filter((suit) => !known.includes(cardId({ rank, suit })))
+}
+
+/**
+ * Picks who to ask and which rank — the suit is decided separately by
+ * pickBotSuitGuess(), only once checkRank() confirms the rank exists.
+ */
+export function pickBotRankChoice(
+  state: GameState,
+  botId: string,
+): BotRankChoice | null {
   const bot = state.players.find((player) => player.id === botId)
 
   if (!bot) {
@@ -59,14 +76,13 @@ export function pickBotAsk(state: GameState, botId: string): BotChoice | null {
 
   if (state.difficulty === 'easy') {
     const rank = pickRandom(ranks)
-    const suit = rank ? pickRandom(missingSuitsForRank(bot, rank)) : undefined
     const target = pickRandom(candidateOpponents)
 
-    if (!rank || !suit || !target) {
+    if (!rank || !target) {
       return null
     }
 
-    return { targetId: target.id, rank, suit }
+    return { targetId: target.id, rank }
   }
 
   const rankPriority =
@@ -84,30 +100,42 @@ export function pickBotAsk(state: GameState, botId: string): BotChoice | null {
       : shuffle(candidateOpponents)
 
   for (const rank of rankPriority) {
-    const suits = shuffle(missingSuitsForRank(bot, rank))
+    const missingSuits = missingSuitsForRank(bot, rank)
 
-    for (const suit of suits) {
-      for (const target of targetPriority) {
-        const alreadyMissed =
-          state.missMemory[target.id]?.includes(cardId({ rank, suit })) ??
-          false
-
-        if (!alreadyMissed) {
-          return { targetId: target.id, rank, suit }
-        }
+    for (const target of targetPriority) {
+      // A rank miss reveals all 4 suits at once, so if every suit we
+      // could still guess for this rank is already known-missing on this
+      // target, asking again would be a wasted turn.
+      if (unknownSuits(state, target.id, rank, missingSuits).length > 0) {
+        return { targetId: target.id, rank }
       }
     }
   }
 
   const fallbackRank = pickRandom(ranks)
-  const fallbackSuit = fallbackRank
-    ? pickRandom(missingSuitsForRank(bot, fallbackRank))
-    : undefined
   const fallbackTarget = pickRandom(candidateOpponents)
 
-  if (!fallbackRank || !fallbackSuit || !fallbackTarget) {
+  if (!fallbackRank || !fallbackTarget) {
     return null
   }
 
-  return { targetId: fallbackTarget.id, rank: fallbackRank, suit: fallbackSuit }
+  return { targetId: fallbackTarget.id, rank: fallbackRank }
+}
+
+/**
+ * Called only after checkRank() has confirmed the target holds this
+ * rank — picks which suit to guess.
+ */
+export function pickBotSuitGuess(
+  state: GameState,
+  botId: string,
+  targetId: string,
+  rank: Rank,
+): Suit {
+  const bot = state.players.find((player) => player.id === botId)
+  const missingSuits = bot ? missingSuitsForRank(bot, rank) : [...SUITS]
+  const candidates = unknownSuits(state, targetId, rank, missingSuits)
+  const pool = candidates.length > 0 ? candidates : missingSuits
+
+  return pickRandom(pool) ?? pickRandom(SUITS) ?? 'spades'
 }

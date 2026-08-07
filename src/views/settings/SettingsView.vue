@@ -97,14 +97,14 @@ function saveSettings() {
 .setting-row {
   position: relative;
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
   justify-content: space-between;
-  min-height: 82px;
-  padding: 16px 18px;
+  min-height: 68px;
+  padding: 12px 15px;
   cursor: pointer;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.035);
   transition:
     border-color 180ms ease,
@@ -120,26 +120,26 @@ function saveSettings() {
 
 .setting-copy {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .setting-copy strong {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .setting-copy small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 9.5px;
 }
 
 .settings-save-button {
-  margin-top: 17px;
+  margin-top: 13px;
 }
 
 @media (max-width: 440px) {
   .setting-row {
-    min-height: 72px;
-    padding: 13px;
+    min-height: 60px;
+    padding: 10px;
   }
 }
 </style>

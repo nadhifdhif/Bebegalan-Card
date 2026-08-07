@@ -41,13 +41,11 @@ function startSolo() {
         ♠
       </div>
 
-      <p class="panel-eyebrow">Single Player</p>
-
-      <h2>Solo Player</h2>
+      <h2>Solo Begal</h2>
     </header>
 
     <section class="solo-section">
-      <h3 class="solo-section-title">Difficulty</h3>
+      <h3 class="solo-section-title">Tingkat Kesulitan</h3>
 
       <div class="difficulty-list">
         <button
@@ -57,7 +55,7 @@ function startSolo() {
           :aria-pressed="botDifficulty === 'easy'"
           @click.stop="selectDifficulty('easy')"
         >
-          Easy
+          Sepele
         </button>
 
         <button
@@ -67,7 +65,7 @@ function startSolo() {
           :aria-pressed="botDifficulty === 'normal'"
           @click.stop="selectDifficulty('normal')"
         >
-          Normal
+          Lumayan
         </button>
 
         <button
@@ -77,13 +75,13 @@ function startSolo() {
           :aria-pressed="botDifficulty === 'hard'"
           @click.stop="selectDifficulty('hard')"
         >
-          Hard
+          Yahudi
         </button>
       </div>
     </section>
 
     <section class="solo-section player-section">
-      <h3 class="solo-section-title">Total Players</h3>
+      <h3 class="solo-section-title">Jumlah Pelaku Begal Kartu</h3>
 
       <div class="player-count-list">
         <button
@@ -106,7 +104,7 @@ function startSolo() {
       type="button"
       @click.stop="startSolo"
     >
-      Mulai Permainan
+      BEGAL!
     </button>
   </div>
 </template>
@@ -119,17 +117,17 @@ function startSolo() {
 }
 
 .solo-header {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .solo-section {
-  margin-bottom: 23px;
+  margin-bottom: 17px;
 }
 
 .solo-section-title {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: rgba(248, 243, 231, 0.94);
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 950;
   text-align: center;
   text-transform: uppercase;
@@ -139,7 +137,7 @@ function startSolo() {
 .difficulty-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 11px;
+  gap: 8px;
 }
 
 .difficulty-button {
@@ -147,11 +145,11 @@ function startSolo() {
   z-index: 4;
   display: grid;
   width: 100%;
-  min-height: 66px;
-  padding: 12px 8px;
+  min-height: 52px;
+  padding: 9px 6px;
   color: var(--text);
   font: inherit;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 950;
   text-align: center;
   cursor: pointer;
@@ -216,7 +214,7 @@ function startSolo() {
   z-index: 4;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .player-count-button {
@@ -229,7 +227,7 @@ function startSolo() {
   padding: 0;
   color: var(--text);
   font: inherit;
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 950;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -285,7 +283,7 @@ function startSolo() {
 }
 
 .solo-start-button {
-  margin-top: 23px;
+  margin-top: 16px;
 }
 
 @media (max-width: 440px) {

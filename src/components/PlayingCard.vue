@@ -72,7 +72,7 @@ const glyph = computed(() => (props.card ? suitGlyph(props.card.suit) : '♠'))
 
 <style scoped>
 .playing-card {
-  --card-w: clamp(32px, 6vh, 44px);
+  --card-w: clamp(38px, 7vh, 54px);
 
   position: relative;
   width: var(--card-w);
@@ -84,19 +84,19 @@ const glyph = computed(() => (props.card ? suitGlyph(props.card.suit) : '♠'))
 }
 
 .playing-card--xs {
-  --card-w: clamp(10px, 1.8vh, 15px);
+  --card-w: clamp(18px, 3vh, 26px);
 }
 
 .playing-card--sm {
-  --card-w: clamp(18px, 3.6vh, 26px);
+  --card-w: clamp(22px, 4.3vh, 32px);
 }
 
 .playing-card--md {
-  --card-w: clamp(32px, 6vh, 44px);
+  --card-w: clamp(44px, 8vh, 62px);
 }
 
 .playing-card--lg {
-  --card-w: clamp(40px, 7.5vh, 56px);
+  --card-w: clamp(48px, 8.5vh, 66px);
 }
 
 .playing-card.is-selected {

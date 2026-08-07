@@ -42,10 +42,3 @@ export interface GameState {
   /** cardId strings each player is known not to hold, keyed by player id. */
   missMemory: Record<string, string[]>
 }
-
-export interface AskResult {
-  hit: boolean
-  card: Card | null
-  drewFromPile: boolean
-  completedBooks: Rank[]
-}
