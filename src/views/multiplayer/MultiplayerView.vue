@@ -54,12 +54,6 @@ onMounted(() => {
 <template>
   <div class="panel-content">
     <header class="panel-header">
-      <div
-        class="panel-emblem panel-emblem--online"
-        aria-hidden="true"
-      >
-        ♣
-      </div>
 
       <p class="panel-eyebrow">Online Multiplayer</p>
 

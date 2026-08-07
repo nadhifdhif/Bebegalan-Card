@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import type { BotDifficulty } from '@/game/types'
 
-type BotDifficulty = 'easy' | 'normal' | 'hard'
 type PlayerCount = 2 | 3 | 4 | 5 | 6
 
 const router = useRouter()
 
-const botDifficulty = ref<BotDifficulty>('normal')
+const botDifficulty = ref<BotDifficulty>('lumayan')
 const totalPlayers = ref<PlayerCount>(2)
 
 const playerOptions: PlayerCount[] = [2, 3, 4, 5, 6]
@@ -50,30 +50,30 @@ function startSolo() {
       <div class="difficulty-list">
         <button
           class="difficulty-button"
-          :class="{ active: botDifficulty === 'easy' }"
+          :class="{ active: botDifficulty === 'sepele' }"
           type="button"
-          :aria-pressed="botDifficulty === 'easy'"
-          @click.stop="selectDifficulty('easy')"
+          :aria-pressed="botDifficulty === 'sepele'"
+          @click.stop="selectDifficulty('sepele')"
         >
           Sepele
         </button>
 
         <button
           class="difficulty-button"
-          :class="{ active: botDifficulty === 'normal' }"
+          :class="{ active: botDifficulty === 'lumayan' }"
           type="button"
-          :aria-pressed="botDifficulty === 'normal'"
-          @click.stop="selectDifficulty('normal')"
+          :aria-pressed="botDifficulty === 'lumayan'"
+          @click.stop="selectDifficulty('lumayan')"
         >
           Lumayan
         </button>
 
         <button
           class="difficulty-button"
-          :class="{ active: botDifficulty === 'hard' }"
+          :class="{ active: botDifficulty === 'yahudi' }"
           type="button"
-          :aria-pressed="botDifficulty === 'hard'"
-          @click.stop="selectDifficulty('hard')"
+          :aria-pressed="botDifficulty === 'yahudi'"
+          @click.stop="selectDifficulty('yahudi')"
         >
           Yahudi
         </button>

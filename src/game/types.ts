@@ -20,7 +20,7 @@ export interface Card {
   suit: Suit
 }
 
-export type BotDifficulty = 'easy' | 'normal' | 'hard'
+export type BotDifficulty = 'sepele' | 'lumayan' | 'yahudi'
 
 export interface PlayerState {
   id: string

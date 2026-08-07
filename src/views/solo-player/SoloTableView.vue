@@ -64,7 +64,7 @@ function bookChip(rank: Rank): Card {
 }
 
 // Chat bubble sekilas, bukan riwayat yang bisa di-scroll — supaya tidak
-// jadi contekan (bisa dibaca ulang) buat lawan "hard" atau nanti online.
+// jadi contekan (bisa dibaca ulang) buat lawan "yahudi" atau nanti online.
 const bubbleText = ref<string | null>(null)
 let bubbleTimer: number | undefined
 
@@ -116,10 +116,15 @@ const needsTargetPick = computed(() => targetableBots.value.length > 1)
 
 // Kembang yang boleh ditebak saat rank sudah dikonfirmasi ada di tangan
 // lawan — kembang yang sudah kita pegang sendiri tidak mungkin dipegang
-// lawan juga (satu kartu cuma ada satu di seluruh dek).
+// lawan juga (satu kartu cuma ada satu di seluruh dek), KECUALI mode
+// "yahudi" lagi ngasih kesempatan buat mancing/bluff (allowOwnSuit).
 const pendingAvailableSuits = computed(() => {
   if (!pendingSuitChoice.value || !human.value) {
     return []
+  }
+
+  if (pendingSuitChoice.value.allowOwnSuit) {
+    return [...SUITS]
   }
 
   const owned = new Set(
@@ -183,7 +188,7 @@ onMounted(() => {
 
   const difficultyRaw = route.query.difficulty
   const difficulty: BotDifficulty =
-    difficultyRaw === 'easy' || difficultyRaw === 'hard' ? difficultyRaw : 'normal'
+    difficultyRaw === 'sepele' || difficultyRaw === 'yahudi' ? difficultyRaw : 'lumayan'
 
   store.start(playerCount, difficulty)
 })
@@ -362,7 +367,7 @@ onMounted(() => {
 
     <div v-if="game.phase === 'finished'" class="win-overlay">
       <div class="win-card">
-        <p class="win-eyebrow">Permainan selesai</p>
+        <p class="win-eyebrow">Begal Selesai</p>
         <h2>{{ winner?.name ?? 'Tidak ada' }} menang!</h2>
 
         <ul>
@@ -404,9 +409,10 @@ onMounted(() => {
 }
 
 .leave-button {
-  padding: 3px 10px;
+  min-height: 38px;
+  padding: 8px 18px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1.4;
   cursor: pointer;

@@ -74,7 +74,7 @@ export function pickBotRankChoice(
     return null
   }
 
-  if (state.difficulty === 'easy') {
+  if (state.difficulty === 'sepele') {
     const rank = pickRandom(ranks)
     const target = pickRandom(candidateOpponents)
 
@@ -86,7 +86,7 @@ export function pickBotRankChoice(
   }
 
   const rankPriority =
-    state.difficulty === 'hard'
+    state.difficulty === 'yahudi'
       ? [...ranks].sort(
           (a, b) =>
             missingSuitsForRank(bot, a).length -
@@ -95,7 +95,7 @@ export function pickBotRankChoice(
       : shuffle(ranks)
 
   const targetPriority =
-    state.difficulty === 'hard'
+    state.difficulty === 'yahudi'
       ? [...candidateOpponents].sort((a, b) => b.hand.length - a.hand.length)
       : shuffle(candidateOpponents)
 

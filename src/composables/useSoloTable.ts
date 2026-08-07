@@ -21,11 +21,19 @@ export interface PendingSuitChoice {
   targetId: string
   targetName: string
   rank: Rank
+  allowOwnSuit: boolean
 }
 
 const FLIGHT_MS = 650
-const BOT_PAUSE_MS = 550
+// Jeda antar giliran sengaja dibuat 1-2 detik biar perpindahan pemain
+// kebaca jelas, tidak bikin bingung waktu bot jalan beruntun.
+const BOT_PAUSE_MS = 1500
 const CHECK_PAUSE_MS = 500
+
+// Tingkat kesulitan "yahudi": 10% kesempatan menu tebak kembang juga
+// menampilkan kembang yang sudah kamu pegang sendiri (padahal mustahil
+// lawan pegang kartu yang sama) — biar bisa mancing/nge-bluff.
+const OWN_SUIT_BLUFF_CHANCE = 0.1
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
@@ -76,7 +84,10 @@ export function useSoloTable(rects: HandRectProvider) {
   // waiting for the human to pick which suit to guess.
   function waitForSuitChoice(targetId: string, targetName: string, rank: Rank) {
     return new Promise<Suit>((resolve) => {
-      pendingSuitChoice.value = { targetId, targetName, rank }
+      const allowOwnSuit =
+        store.game?.difficulty === 'yahudi' && Math.random() < OWN_SUIT_BLUFF_CHANCE
+
+      pendingSuitChoice.value = { targetId, targetName, rank, allowOwnSuit }
       resolveSuitChoice = resolve
     })
   }

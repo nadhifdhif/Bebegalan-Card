@@ -18,12 +18,6 @@ function saveSettings() {
 <template>
   <div class="panel-content">
     <header class="panel-header">
-      <div
-        class="panel-emblem panel-emblem--settings"
-        aria-hidden="true"
-      >
-        ♦
-      </div>
 
       <p class="panel-eyebrow">Preferences</p>
 
