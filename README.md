@@ -136,26 +136,6 @@ langsung dipakai bareng dengan frontend TypeScript, dan karena game ini
 butuh realtime (Socket.IO) yang lebih native di ekosistem Node dibanding
 harus menambah infra broadcasting terpisah.
 
-## Roadmap / Milestone
-
-- [x] **M0** — Scaffold Vue + UI main menu & 3 panel (Online/Solo/Settings),
-      awalnya semua dalam 1 file (`HomeView.vue`)
-- [x] **M1** — Refactor frontend jadi per-fitur (`home` / `settings` /
-      `solo-player` / `multiplayer`) + routing, shared design-system CSS
-- [x] **M2** — Solo Player bisa dimainkan end-to-end: game engine Bebegalan
-      (`src/game/`) dengan alur tanya-angka lalu tebak-kembang dua tahap,
-      52 aset kartu asli, animasi bagi/tanya/hit/miss, 3 level bot
-      (Sepele/Lumayan/mode licik) — 100% client-side, tanpa backend
-- [ ] **M3** — Scaffold backend (NestJS + Socket.IO) — **khusus untuk
-      Multiplayer/Online Room**, bukan Solo (Solo tetap client-side
-      selamanya, lihat catatan di bagian Solo Player)
-- [ ] **M4** — Pindahkan `src/game/` ke `packages/shared` saat monorepo
-      dibentuk, dipakai backend sebagai source of truth validasi realtime
-      (server re-validasi tiap `ask`, supaya client tidak bisa curang)
-- [ ] **M5** — Multiplayer realtime penuh (room manager, event socket,
-      reconnect handling)
-- [ ] **M6** — Auth (register/login), leaderboard, deploy
-
 ## Menjalankan
 
 ```bash
