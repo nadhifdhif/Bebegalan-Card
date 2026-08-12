@@ -4,7 +4,7 @@ Versi online dari **Bebegalan** (a.k.a. "Begal Kartu"), permainan kartu remi
 khas Jawa Barat yang mirip [Go Fish](https://cardgames.io/gofish/) tapi
 dengan aturan yang lebih ketat soal apa yang harus kamu ungkapkan ke lawan.
 
-Status: **under development**. Dibangun bertahap per-milestone.
+Status: **under development**
 
 ## Aturan Bebegalan
 
@@ -103,38 +103,6 @@ walau lawan mustahil betulan pegang kartu yang sama persis.
 
 Aset 52 kartu ada di `src/assets/cards/` (lihat `CREDITS.md` di
 folder itu untuk lisensinya).
-
-### Gaya bahasa UI
-
-Nama komponen/route tetap bahasa Inggris/teknis (`solo-player`,
-`multiplayer`, `SoloPlayerView.vue`, dst) supaya konsisten buat
-development, tapi **teks yang tampil ke pemain** sengaja pakai gaya santai
-"tongkrongan" (mis. tombol menu "Begal Online" / "Begal Sendiri" /
-"Pengaturan Begal", bukan istilah formal seperti "Multiplayer"/"Settings")
-sesuai identitas **Begal Kartu**. Kalau nambah teks baru yang tampil ke
-user, ikuti gaya ini.
-
-## Arsitektur target (rencana, belum diimplementasikan)
-
-Kalau/ketika backend digarap (mulai M3 di roadmap), rencananya migrasi ke
-monorepo pnpm workspaces:
-
-```
-apps/
-  web/      Vue 3 + Vite (isi src/ yang sekarang pindah ke sini)
-  server/   Node.js (NestJS) + Socket.IO — room, realtime gameplay, auth, leaderboard
-packages/
-  shared/   Logic aturan kartu (murni TypeScript, tanpa dependency framework)
-            dipakai oleh server (source of truth/validasi) & web (prediksi UI)
-```
-
-Kenapa begini: `packages/shared` jadi satu-satunya tempat aturan permainan
-didefinisikan, supaya client tidak bisa curang (server selalu re-validasi
-pakai fungsi yang sama) dan supaya UI bisa preview state tanpa duplikasi
-logic. Backend Node.js (bukan Laravel) dipilih supaya tipe & logic ini bisa
-langsung dipakai bareng dengan frontend TypeScript, dan karena game ini
-butuh realtime (Socket.IO) yang lebih native di ekosistem Node dibanding
-harus menambah infra broadcasting terpisah.
 
 ## Menjalankan
 
