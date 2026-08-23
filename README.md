@@ -1,8 +1,7 @@
 # Bebegalan Card
 
 Versi online dari **Bebegalan** (a.k.a. "Begal Kartu"), permainan kartu remi
-khas Jawa Barat yang mirip [Go Fish](https://cardgames.io/gofish/) tapi
-dengan aturan yang lebih ketat soal apa yang harus kamu ungkapkan ke lawan. Permainan ini terinspisari dari maraknya kasus begal di Jawa Barat, khususnya daerah Bandung Raya.
+khas Jawa Barat yang mirip [Go Fish](https://cardgames.io/gofish/). Permainan ini terinspisari dari maraknya kasus begal di Jawa Barat, khususnya daerah Bandung Raya.
 
 Status: **under development in backend sections and UI sections**
 
@@ -50,7 +49,7 @@ package Vite biasa**, belum monorepo:
 
 - **Frontend**: Vue 3.5 + Vite 8 + Vue Router 5 + Pinia 4, TypeScript,
   ESLint + oxlint + Prettier.
-- **Backend**: belum ada.
+- **Backend**: under development
 
 Struktur frontend dipecah per fitur, bukan satu file besar:
 
