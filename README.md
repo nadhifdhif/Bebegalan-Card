@@ -44,7 +44,7 @@ Status: **under development in backend sections and Websocket Configuration**
 
 ## Stack saat ini
 
-Ini kondisi nyata di branch ini (bukan rencana) — proyek masih **satu
+Ini kondisi nyata di branch ini (bukan rencana) proyek masih **satu
 package Vite biasa**, belum monorepo:
 
 - **Frontend**: Vue 3.5 + Vite 8 + Vue Router 5 + Pinia 4, TypeScript,
