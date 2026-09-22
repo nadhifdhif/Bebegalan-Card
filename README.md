@@ -3,7 +3,7 @@
 Versi online dari **Bebegalan** (a.k.a. "Begal Kartu"), permainan kartu remi
 khas Jawa Barat yang mirip [Go Fish](https://cardgames.io/gofish/). Permainan ini terinspisari dari maraknya kasus begal di Jawa Barat, khususnya daerah Bandung Raya.
 
-Status: **under development in backend sections and Websocket Configuration**
+Status: **under development in backend sections**
 
 ## Aturan Bebegalan
 
