@@ -4,7 +4,7 @@ Versi online dari **Bebegalan** (a.k.a. "Begal Kartu"), permainan kartu remi
 khas Jawa Barat yang mirip [Go Fish](https://cardgames.io/gofish/) tapi
 dengan aturan yang lebih ketat soal apa yang harus kamu ungkapkan ke lawan.
 
-Status: **under development**. Dibangun bertahap per-milestone.
+Status: **under development**, menunggu keputusan update dari developer
 
 ## Aturan Bebegalan
 
